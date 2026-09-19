@@ -1,0 +1,25 @@
+{
+  "before": {
+    ".agents/skills/king-was-me-collaboration/SKILL.md": "678aad909682a9ee3fcb66edba0024bc232b4b22a684d1bbe00ec017af869c5f",
+    ".agents/skills/king-was-me-collaboration/scripts/review_queue.py": "cecdec2b49fbea4ec0227a69aa76513124299ccc900c603bf752aed07003334f",
+    "development/collaboration/README.md": "512ec2d9e8024959c39771ab70db4737fc0fec848095fe0c3835b24055d0f13b",
+    "development/collaboration/CLAUDE_SETUP.md": "b59862146f72431f9ef203d1be5f900d902c4557f1609145f600460eb0f87062",
+    "00_START_HERE.md": "322de2c155606a878392d481bfefbe0221db5d39aea6da9073ab5d14164d035a",
+    "development/collaboration/dashboard/dashboard.py": "5a5294fb1392c5c10c29d92ab2942766c049e5d16cb34a27df38c7025bcd640b",
+    "development/collaboration/dashboard/visual_dashboard.py": "0788c107e9aad850c57af914812ac18166baf328a4c7d7f08ec69785762416da"
+  },
+  "after": {
+    ".agents/skills/king-was-me-collaboration/SKILL.md": "3fca0bf241ad59b183dd7328f4a09c3623a551102d252a4595957bb344664823",
+    ".agents/skills/king-was-me-collaboration/scripts/review_queue.py": "30170a8c1a610a20547d706dd5d75bc7a7c0fea3b402f99ae7c8236e09f6b660",
+    "development/collaboration/README.md": "082691d8879701c5162cab4b2ea5ae71115cc19a07e835e431f52158d3558d0b",
+    "development/collaboration/CLAUDE_SETUP.md": "473307d81cd799fbcf9d9fdfc0c73f2f2363b880d9bf8b204de4a200f11bed6a",
+    "00_START_HERE.md": "4ffd0454de84ea549faabb654da4fcf7e10986274530ec94706183b6c5a99a32",
+    "development/collaboration/dashboard/dashboard.py": "d1c61a61eef96a263a284ab18189cfaa84c83c5a1f1ff9bc5fd82eb8b5de4749",
+    "development/collaboration/dashboard/visual_dashboard.py": "a84775e1297eac7443025ba86f8f9c61f94a822ea5a459607515d29874ec2e1e"
+  },
+  "protectedHtml": {
+    "KING_WAS_ME_MVP.html": "bbd6aebede4ac69fec96c36373c223bd84350b4bd5cbfe9625703ee80e7c59c9",
+    "blind_test\\KING_WAS_ME_MVP.html": "98fb8f4a2b4d0adf0b3e40409a625d73f1e324854bb34555cd1ad68b2757c093",
+    "development\\KING_WAS_ME_MVP.html": "f22924a6597cc9c34bc357249fc7fc928668350690215a7024a8fef0dd973dd9"
+  }
+}

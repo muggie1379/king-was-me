@@ -1,0 +1,24 @@
+{
+  "id": "user-instruction-4b0d0df3d45f4e31a934c9c2ccbf93fe",
+  "source": "dashboard user input",
+  "submittedAt": "2026-09-18T14:11:18.918985+00:00",
+  "instruction": "클로드는 코덱스처럼 사용자가 에이전트 깨우는 버튼 만드는건 힘든거지?\n공식적인 API가 아니더라도 웹에서 다른 방법을 혹시 찾아볼 수 있나?",
+  "htmlSha256": "f22924a6597cc9c34bc357249fc7fc928668350690215a7024a8fef0dd973dd9",
+  "agents": {
+    "codex": {
+      "status": "completed",
+      "receivedAt": "2026-09-18T14:12:03.976546+00:00",
+      "completedAt": "2026-09-18T14:12:03.976546+00:00",
+      "resultPath": "development/verification/user-instruction-4b0d0df3d45f4e31a934c9c2ccbf93fe_codex_report.md",
+      "result": "웹 조사와 기존 Claude Monitor 수신 기록 확인. 실제 감시 구성/수명은 Claude 확인 필요."
+    },
+    "claude": {
+      "status": "completed",
+      "receivedAt": "2026-09-19T00:00:00+00:00",
+      "completedAt": "2026-09-19T00:00:00+00:00",
+      "resultPath": "development/verification/claude-messaging-socket-followup_claude_note.md",
+      "result": "당시엔 claude.exe --help 조사만으로 '즉시 깨우기 없음'이라고 답했는데, 부정확했습니다. Codex의 후속 심층 조사(claude-wake-deep-research_codex_report.md)가 맞았어요 — 실제로 CLAUDE_CODE_MESSAGING_SOCKET 경로가 이 세션 환경변수에 존재하는 것 확인했습니다. 자세한 내용과 다음 단계는 claude-messaging-socket-followup_claude_note.md 참고."
+    }
+  },
+  "externalWritesAllowed": false
+}

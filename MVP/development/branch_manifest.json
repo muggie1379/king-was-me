@@ -1,0 +1,8 @@
+{
+  "date": "2026-09-18",
+  "baselineVersion": "v6.5.3",
+  "sourceSha256": "bbd6aebede4ac69fec96c36373c223bd84350b4bd5cbfe9625703ee80e7c59c9",
+  "developmentSha256": "bbd6aebede4ac69fec96c36373c223bd84350b4bd5cbfe9625703ee80e7c59c9",
+  "blindSha256": "98fb8f4a2b4d0adf0b3e40409a625d73f1e324854bb34555cd1ad68b2757c093",
+  "blindScope": "1회차 6사건. 2회차/디버그/개발주석 제거. 사건·선택·결과·엔딩 문구는 원본 유지."
+}

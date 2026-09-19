@@ -1,0 +1,10 @@
+{
+  "id": "wake-e683ebd4ccb045d9b3a2cce85e62921e",
+  "agent": "codex",
+  "threadId": "01a0b429-5725-7483-8f34-4ed0150f267a",
+  "requestedAt": "2026-09-18T14:15:33.440497+00:00",
+  "status": "queued",
+  "instructionId": "user-instruction-test",
+  "result": "Codex 작업에 메시지 접수됨 · 작업 완료는 아직 확인되지 않았습니다.",
+  "finishedAt": "2026-09-18T14:15:33.440756+00:00"
+}

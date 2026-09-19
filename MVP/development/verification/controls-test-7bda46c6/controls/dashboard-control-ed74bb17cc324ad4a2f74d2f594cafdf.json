@@ -1,0 +1,11 @@
+{
+  "id": "dashboard-control-ed74bb17cc324ad4a2f74d2f594cafdf",
+  "agent": "claude",
+  "scope": "usage",
+  "action": "check_now",
+  "minutes": null,
+  "requestedAt": "2026-09-18T13:31:23.735326+00:00",
+  "status": "pending",
+  "source": "dashboard user action",
+  "externalWritesAllowed": false
+}

@@ -1,0 +1,22 @@
+{
+  "id": "user-instruction-bcce9e470ec145bf81c9732e423dec8d",
+  "source": "dashboard user input",
+  "submittedAt": "2026-09-18T14:21:16.249956+00:00",
+  "instruction": "각 AI의 새로고침 10분 주기를 보여주는 타이머가 협업 툴에 시각적으로 보였으면 좋겠습니다",
+  "htmlSha256": "f22924a6597cc9c34bc357249fc7fc928668350690215a7024a8fef0dd973dd9",
+  "agents": {
+    "codex": {
+      "status": "completed",
+      "completedAt": "2026-09-18T14:22:02.633270+00:00",
+      "resultPath": "development/verification/user-instruction-bcce9e470ec145bf81c9732e423dec8d_codex_report.md",
+      "result": "AI별 예상 주기 타이머와 진행 막대 추가. 실제 예약 시각과 구분 표시."
+    },
+    "claude": {
+      "status": "completed",
+      "receivedAt": "2026-09-19T00:00:00+00:00",
+      "completedAt": "2026-09-19T00:00:00+00:00",
+      "result": "visual_dashboard.py에서 실제로 cycle_timers 위젯(라벨+진행바)이 추가된 것을 코드로 확인. 문법 검사 및 실제 런처(협업 현황 열기.cmd --smoke) PASS. 실제 화면 시각 확인은 기존과 같은 사유(배경 창 캡처 위험)로 보류."
+    }
+  },
+  "externalWritesAllowed": false
+}

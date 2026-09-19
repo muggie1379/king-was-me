@@ -1,0 +1,11 @@
+{
+  "id": "dashboard-control-22044c3d63354d2cb9eb3d6504f3f774",
+  "agent": "codex",
+  "scope": "collaboration",
+  "action": "set_interval",
+  "minutes": 7,
+  "requestedAt": "2026-09-18T13:31:23.729077+00:00",
+  "status": "pending",
+  "source": "dashboard user action",
+  "externalWritesAllowed": false
+}

@@ -1,0 +1,9 @@
+{
+  "id": "wake-c477fc7e34cc4b0b875bad8633c00ac6",
+  "agent": "codex",
+  "threadId": "01a0b429-5725-7483-8f34-4ed0150f267a",
+  "requestedAt": "2026-09-18T13:44:21.189808+00:00",
+  "status": "failed",
+  "result": "connection failed",
+  "finishedAt": "2026-09-18T13:44:21.190006+00:00"
+}

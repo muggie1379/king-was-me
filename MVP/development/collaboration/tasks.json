@@ -1,0 +1,17 @@
+{
+  "tasks": [
+    {
+      "id": "sync-development-header",
+      "owner": "codex",
+      "status": "completed",
+      "scope": "maintenance",
+      "summary": "개발용 헤더의 오래된 MVP v5.6.2 표기를 현재 개발 버전과 일치시키기",
+      "baseHtmlSha256": "bab9ae4a51cca70885a4d3706eb4790325575390757f56c265382be7a39dd908",
+      "sourceReview": "development/verification/v6.6.0_claude_review.md",
+      "acceptance": "development의 표시 라벨만 정리. blind_test/루트 기준은 보존. 전후 diff와 해시 및 적절한 검사 결과를 기록하고 Claude 독립 검토 요청 생성.",
+      "reportPath": "development/verification/sync-development-header_codex_report.md",
+      "requestPath": "development/collaboration/requests/sync-development-header.md",
+      "resultHtmlSha256": "f22924a6597cc9c34bc357249fc7fc928668350690215a7024a8fef0dd973dd9"
+    }
+  ]
+}

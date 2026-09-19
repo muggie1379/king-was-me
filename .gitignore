@@ -1,0 +1,44 @@
+.secrets/
+
+# --- secrets (never commit) ---
+.secrets/
+*.env
+.mcp.json
+**/bridge-token
+
+# --- Unity generated ---
+Unity/My project/Library/
+Unity/My project/Temp/
+Unity/My project/Logs/
+Unity/My project/obj/
+Unity/My project/UserSettings/
+Unity/My project/Builds/
+Unity/My project/Build/
+Unity/My project/.vs/
+Unity/My project/*.csproj
+Unity/My project/*.sln
+Unity/My project/*.suo
+Unity/My project/*.user
+Unity/My project/MemoryCaptures/
+Unity/My project/Recordings/
+
+# --- Codex/Claude collaboration ephemera (file-lock/dashboard state) ---
+MVP/development/collaboration/active_work.json
+MVP/development/collaboration/controls/
+MVP/development/collaboration/dashboard/
+MVP/development/collaboration/wake_events/
+MVP/development/collaboration/usage_snapshot.json
+MVP/development/collaboration/automation_status.json
+MVP/development/collaboration/codex_state.json
+
+# --- third-party free asset library (large; keep manifests/notes only) ---
+Asset_Library/**
+!Asset_Library/
+!Asset_Library/**/
+!Asset_Library/**/*.md
+
+# --- misc ---
+*.zip
+__pycache__/
+.DS_Store
+Thumbs.db

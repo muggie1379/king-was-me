@@ -1,0 +1,4 @@
+interface:
+  display_name: "KING WAS ME 협업"
+  short_description: "Claude 검토를 확인하고 승인된 후속 수정과 작업 기록을 관리합니다"
+  default_prompt: "$king-was-me-collaboration으로 새 Claude 검토와 대기 작업을 확인하고 승인된 범위에서 처리해줘."

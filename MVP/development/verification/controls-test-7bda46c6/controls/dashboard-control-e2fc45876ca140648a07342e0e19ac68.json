@@ -1,0 +1,11 @@
+{
+  "id": "dashboard-control-e2fc45876ca140648a07342e0e19ac68",
+  "agent": "claude",
+  "scope": "collaboration",
+  "action": "set_interval",
+  "minutes": 7,
+  "requestedAt": "2026-09-18T13:31:23.739261+00:00",
+  "status": "pending",
+  "source": "dashboard user action",
+  "externalWritesAllowed": false
+}

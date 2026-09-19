@@ -1,0 +1,35 @@
+{
+  "createdAt": "2026-09-19T10:02:33+09:00",
+  "purpose": "Pre-change snapshot before approved multi-kingdom relationship direction",
+  "restore": "Copy a file from before/<relative path> back to the project root at the same relative path.",
+  "files": [
+    {
+      "path": "00_START_HERE.md",
+      "sha256": "0ba6ae99e38f19531889c45ba9cb132735204f1546a737935ca6d965d6c7d83c"
+    },
+    {
+      "path": "기획\\02_design_bible.md",
+      "sha256": "b8503143d46f85d5e699909d728c99e136cf22280e9fe7206b92833300e27543"
+    },
+    {
+      "path": "기획\\03_character_bible.md",
+      "sha256": "1f61da2172c60050d94da4acacc120812f593d02ea0fcd510b784b294f2228a1"
+    },
+    {
+      "path": "기획\\04_story_bible.md",
+      "sha256": "76e5c951f37d5391526550be4ab42c582971735753f32a3a5f612b03d9860ace"
+    },
+    {
+      "path": "기획\\04_story_bible.ink",
+      "sha256": "8b6b36c40b05d54de2fb4549659a8aa043c3335ca30c9d9e662f6ebf0391e8e7"
+    },
+    {
+      "path": "MVP\\development\\KING_WAS_ME_KINGDOM_SLICE.html",
+      "sha256": "e2c478954379cd05d10f99a78ea92680cd2b10ba72040c1ea896ded883c101ed"
+    },
+    {
+      "path": "MVP\\development\\README.md",
+      "sha256": "23ea7efb7b9a5a301343731948d36d223e61d4d8662a28fd758564a07b56f8a4"
+    }
+  ]
+}

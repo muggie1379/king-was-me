@@ -1,0 +1,23 @@
+{
+  "id": "user-instruction-b8e281799e2d46d5b0c5d357ac8b5e16",
+  "source": "dashboard user input",
+  "submittedAt": "2026-09-18T14:17:03.433119+00:00",
+  "instruction": "클로드는 결국 '즉시 깨우기'랑 '메시지 지시 직접 전달' 기능이 없는걸로 이해하면 되나요?",
+  "htmlSha256": "f22924a6597cc9c34bc357249fc7fc928668350690215a7024a8fef0dd973dd9",
+  "agents": {
+    "codex": {
+      "status": "completed",
+      "completedAt": "2026-09-18T14:19:25.790573+00:00",
+      "resultPath": "development/verification/claude-wake-deep-research_codex_report.md",
+      "result": "심층 조사: 공식 inbox 및 Channels 발견. 현재 Claude 세션 지원은 별도 확인 필요."
+    },
+    "claude": {
+      "status": "completed",
+      "receivedAt": "2026-09-19T00:00:00+00:00",
+      "completedAt": "2026-09-19T01:00:00+00:00",
+      "resultPath": "development/verification/claude-messaging-socket-followup_claude_note.md",
+      "result": "최종 결론(사용자 확인): 기존 방식(요청 파일 큐잉) 유지, 메시지 소켓 경로는 더 진행하지 않음. 이유: Claude가 자기 세션 소켓에 직접 연결해 프로토콜을 검증하려 하자 플랫폼 auto-mode 분류기가 'Self-Modification'으로 차단함 — 실제 메시지 페이로드 형식을 안전하게 검증할 방법이 없고, 외부 트리거라도 같은 위험(세션에 메시지 주입)을 안고 있어 계속 밀어붙이지 않기로 함. 사용자도 '기존 방식으로도 불편하지 않다'고 확인."
+    }
+  },
+  "externalWritesAllowed": false
+}

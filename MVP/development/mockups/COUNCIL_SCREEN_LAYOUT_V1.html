@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KING WAS ME — Council Screen Layout v1</title>
+<style>
+:root{--ink:#ebe3d2;--muted:#a99f8e;--line:#776b58;--panel:rgba(15,16,17,.91);--gold:#b99a63;--blue:#7fb3ff;--rust:#ff8a65;--sage:#66d9a6;--ochre:#d9a566}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#090a0b;color:var(--ink);font-family:"Malgun Gothic","Noto Sans KR",sans-serif}
+body{display:grid;place-items:center;padding:20px}.shell{width:min(96vw,1600px)}
+.toolbar{display:flex;gap:8px;margin-bottom:10px}.toolbar button{border:1px solid #615846;background:#171819;color:#cfc5b4;padding:9px 15px;cursor:pointer}.toolbar button.active{border-color:var(--gold);color:#fff;background:#29251e}
+.screen{position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid #50493d;background:#111;box-shadow:0 25px 80px #000}
+.backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.63) saturate(.74)}
+.vignette{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.38),transparent 20%,transparent 55%,rgba(0,0,0,.76)),linear-gradient(90deg,rgba(0,0,0,.35),transparent 18%,transparent 82%,rgba(0,0,0,.35))}
+.top{position:absolute;top:2.5%;left:3%;right:3%;display:flex;align-items:flex-start;justify-content:space-between;text-shadow:0 2px 7px #000}.eyebrow{font-size:clamp(9px,1vw,15px);letter-spacing:.18em;color:#c6bda9}.title{font-family:Georgia,serif;font-size:clamp(20px,2.5vw,43px);margin-top:4px}.progress{text-align:right;font-size:clamp(10px,1vw,15px);color:#d6ccb9}.track{width:clamp(130px,16vw,260px);height:3px;margin-top:8px;background:#48433b}.track i{display:block;width:38%;height:100%;background:var(--gold)}
+.court{position:absolute;left:4%;right:4%;top:15%;height:57%;display:flex;align-items:flex-end;justify-content:center;gap:1.4%;pointer-events:none}
+.advisor{position:relative;width:18%;height:100%;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 10px 12px #000)}.advisor img{max-width:100%;max-height:91%;object-fit:contain;object-position:center bottom}.advisor::after{content:"";position:absolute;left:14%;right:14%;bottom:0;height:2px;background:var(--accent);box-shadow:0 0 14px var(--accent);opacity:.8}.advisor.active{transform:translateY(-2%);filter:drop-shadow(0 12px 15px #000) brightness(1.08)}
+.name{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);white-space:nowrap;background:rgba(9,10,11,.88);border:1px solid #716856;padding:5px 11px;font-size:clamp(8px,.8vw,13px);letter-spacing:.08em}.name b{color:var(--accent)}
+.dialogue{position:absolute;left:3%;right:3%;bottom:2.5%;min-height:22%;padding:2.3% 3%;background:var(--panel);border:1px solid #736a59;box-shadow:0 -10px 35px rgba(0,0,0,.5)}.speaker{font-size:clamp(10px,.95vw,15px);letter-spacing:.13em;color:var(--blue);margin-bottom:.8%}.line{font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(15px,1.45vw,25px);line-height:1.65;max-width:88%}.continue{position:absolute;right:2.5%;bottom:14%;color:#a89d8a;font-size:clamp(9px,.9vw,14px)}
+.summary{display:none;position:absolute;left:5%;right:5%;top:16%;bottom:5%;padding:2.4%;background:rgba(12,13,14,.94);border:1px solid #736a59;box-shadow:0 20px 60px #000}.summary h2{margin:0 0 .5%;font-family:Georgia,"Malgun Gothic",serif;font-weight:500;font-size:clamp(19px,2vw,34px)}.summary p{margin:0 0 2%;color:var(--muted);font-size:clamp(9px,.9vw,14px)}.cards{display:grid;grid-template-columns:1fr 1fr;gap:2%;height:67%}.card{position:relative;padding:3.5% 4%;background:#1b1d1f;border:1px solid #544d42;border-left:3px solid var(--accent)}.card .who{color:var(--accent);font-size:clamp(10px,1vw,16px);margin-bottom:3%}.card .opinion{font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(12px,1.18vw,20px);line-height:1.55}.card small{position:absolute;bottom:8%;left:4%;color:#8f877a}.decision{position:absolute;left:2.4%;right:2.4%;bottom:3%;display:flex;gap:1.2%}.decision button{flex:1;padding:1.2%;border:1px solid #756a57;background:#242526;color:#e9dfcc;font-size:clamp(10px,1vw,16px)}
+.screen.summary-mode .court,.screen.summary-mode .dialogue{display:none}.screen.summary-mode .summary{display:block}
+.note{margin-top:10px;color:#8f877a;font-size:12px}.note strong{color:#c8bdab}
+</style>
+</head>
+<body>
+<main class="shell">
+  <nav class="toolbar"><button class="active" data-mode="meeting">회의 진행</button><button data-mode="summary">의견 종합</button></nav>
+  <section class="screen" id="screen">
+    <img class="backdrop" src="../../../Unity/My project/Assets/AI_Generated/Images/Locations/council_gallery/clear_sunrise.png" alt="">
+    <div class="vignette"></div>
+    <header class="top"><div><div class="eyebrow">왕실 회의 · 국경 보고</div><div class="title">엇갈린 보고</div></div><div class="progress">사건 11 / 29<div class="track"><i></i></div></div></header>
+    <div class="court">
+      <figure class="advisor" style="--accent:var(--rust)"><img src="../../../Unity/My project/Assets/AI_Generated/Images/Characters/advisor_valen_v2.png"><figcaption class="name"><b>발렌</b> · 원수</figcaption></figure>
+      <figure class="advisor active" style="--accent:var(--blue)"><img src="../../../Unity/My project/Assets/AI_Generated/Images/Characters/advisor_seran_v2.png"><figcaption class="name"><b>세르안</b> · 재상</figcaption></figure>
+      <figure class="advisor" style="--accent:var(--sage)"><img src="../../../Unity/My project/Assets/AI_Generated/Images/Characters/advisor_rian_v2.png"><figcaption class="name"><b>리안</b> · 외교관</figcaption></figure>
+      <figure class="advisor" style="--accent:var(--ochre)"><img src="../../../Unity/My project/Assets/AI_Generated/Images/Characters/advisor_karden_v3.png"><figcaption class="name"><b>카르덴</b> · 수호관</figcaption></figure>
+    </div>
+    <section class="dialogue"><div class="speaker">세르안 · 재상</div><div class="line">보고가 어긋난다는 사실만은 분명합니다. 지금 결정할 것은 누구를 믿을지가 아니라, 무엇을 더 확인할지입니다.</div><div class="continue">클릭해서 계속 ▾</div></section>
+    <section class="summary">
+      <h2>대신들의 의견</h2><p>왕의 결정을 기다리고 있습니다. 각 의견은 제안이며 정답이 아닙니다.</p>
+      <div class="cards">
+        <article class="card" style="--accent:var(--blue)"><div class="who">세르안 · 재상</div><div class="opinion">엇갈린 기록부터 다시 대조해야 합니다.</div><small>사실 확인</small></article>
+        <article class="card" style="--accent:var(--rust)"><div class="who">발렌 · 원수</div><div class="opinion">경계 병력을 움직여 빈틈을 먼저 막아야 합니다.</div><small>즉시 행동</small></article>
+        <article class="card" style="--accent:var(--sage)"><div class="who">리안 · 외교관</div><div class="opinion">상대가 설명할 통로를 닫지는 말아야 합니다.</div><small>관계 유지</small></article>
+        <article class="card" style="--accent:var(--ochre)"><div class="who">카르덴 · 수호관</div><div class="opinion">추가 대응이 왕국 내부에 남길 부담도 계산해야 합니다.</div><small>내부 여력</small></article>
+      </div>
+      <div class="decision"><button>추가 보고를 기다린다</button><button>경계를 먼저 보강한다</button><button>공식 답신을 보낸다</button></div>
+    </section>
+  </section>
+  <p class="note"><strong>레이아웃 목업 v1</strong> · 캐릭터는 화면 중앙 55% 안에서 전신 실루엣이 끝나야 하며, 하단 24%는 대화/선택 UI를 위해 비워둔다.</p>
+</main>
+<script>
+const screen=document.querySelector('#screen');
+document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
+ document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('active'));button.classList.add('active');
+ screen.classList.toggle('summary-mode',button.dataset.mode==='summary');
+}));
+</script>
+</body>
+</html>

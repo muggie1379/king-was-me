@@ -1,0 +1,11 @@
+{
+  "id": "dashboard-control-a6f63d98214e4b19bddfdfff84e6ce48",
+  "agent": "codex",
+  "scope": "usage",
+  "action": "set_interval",
+  "minutes": 7,
+  "requestedAt": "2026-09-18T13:31:23.724172+00:00",
+  "status": "pending",
+  "source": "dashboard user action",
+  "externalWritesAllowed": false
+}

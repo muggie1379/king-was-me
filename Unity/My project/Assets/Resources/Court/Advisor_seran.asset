@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f27ec6c51658cf34ea9d32d07de942bf, type: 3}
+  m_Name: Advisor_seran
+  m_EditorClassIdentifier: 
+  id: seran
+  displayName: "\uC138\uB974\uC548"
+  role: "\uC7AC\uC0C1"
+  isGuest: 0
+  introVar: 
+  accent: {r: 0.49803922, g: 0.7019608, b: 1, a: 1}
+  portrait: {fileID: -5076242303301229582, guid: e9eb560f179714a44bb6fe0dd2d69288, type: 3}
+  seatedPoses: []

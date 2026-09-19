@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21defad384d7c9a4092a154148646021, type: 3}
+  m_Name: AssetCatalog
+  m_EditorClassIdentifier: 
+  story: {fileID: 6231892579173505729, guid: 31a990c3ca47b874b89c6aa7450aa5cd, type: 3}
+  acts:
+  - label: "ACT I \uC791\uC740 \uC655\uAD6D"
+    minEvent: 1
+    maxEvent: 3
+    tint: {r: 0.1, g: 0.09, b: 0.07, a: 1}
+    droneHz: 220
+    background: {fileID: -3200330382646385110, guid: 43adbd15c2635434f8289d0cb227dd2b, type: 3}
+    music: {fileID: 8300000, guid: 798e1d5ca9d40a64694ac3be92fb955d, type: 3}
+    ambient: {fileID: 8300000, guid: 75594f964669f99479cf254020eaf3d7, type: 3}
+  - label: "ACT II \uC5EC\uB7EC \uC774\uC6C3"
+    minEvent: 4
+    maxEvent: 10
+    tint: {r: 0.07, g: 0.09, b: 0.13, a: 1}
+    droneHz: 246.94
+    background: {fileID: -6089326858069571435, guid: 6fb3ffae59437b94388bac1b0645d8da, type: 3}
+    music: {fileID: 8300000, guid: a361acf89413d71488308899ea7896cf, type: 3}
+    ambient: {fileID: 8300000, guid: f8f06b1fef173cd4ca4b0a98d5867fa6, type: 3}
+  - label: "ACT III \uD754\uB4E4\uB9AC\uB294 \uAD6D\uACBD"
+    minEvent: 11
+    maxEvent: 17
+    tint: {r: 0.12, g: 0.08, b: 0.07, a: 1}
+    droneHz: 196
+    background: {fileID: 5149108582653511228, guid: 8eaa35fc72606bb4ab2be05ac643d7b8, type: 3}
+    music: {fileID: 8300000, guid: d9e06f6d084482c4bba16abe0682e019, type: 3}
+    ambient: {fileID: 8300000, guid: 8f029a64200119c4c811e0acc7466a16, type: 3}
+  - label: "ACT IV \uD544\uC694 \uC5C6\uC5C8\uB358 \uC804\uC7C1"
+    minEvent: 18
+    maxEvent: 25
+    tint: {r: 0.05, g: 0.05, b: 0.07, a: 1}
+    droneHz: 174.61
+    background: {fileID: -9196531581376192570, guid: 6674f0a749cd82a488161e486d1a21f3, type: 3}
+    music: {fileID: 8300000, guid: c8fcf6032c7d79d4e80d3bfaa69a2511, type: 3}
+    ambient: {fileID: 8300000, guid: 4a7f34770a8a2234188871bccc4c460b, type: 3}
+  - label: "ACT V \uB098\uB77C\uB97C \uC9C0\uD0A4\uB294 \uBC95"
+    minEvent: 26
+    maxEvent: 99
+    tint: {r: 0.1, g: 0.09, b: 0.06, a: 1}
+    droneHz: 233.08
+    background: {fileID: 8386823147957905719, guid: 83b3b4eb68fbe5942ba4488dc530b840, type: 3}
+    music: {fileID: 8300000, guid: 23d82e4eb31febb4b9f1edeaa1100df4, type: 3}
+    ambient: {fileID: 8300000, guid: f7f8da581b44e104683802f11df9671d, type: 3}
+  serifFont: {fileID: 12800000, guid: 764eeb57ce71c7f4698e10be01e46307, type: 3}
+  sansFont: {fileID: 12800000, guid: 631ecf68bee441a4898717b072d22a7a, type: 3}
+  uiClick: {fileID: 8300000, guid: 6b71b2abc5be6a34fa8bd7fb787dc6dd, type: 3}
+  uiChoice: {fileID: 8300000, guid: feff919dd6c5a10408ff2896325006a2, type: 3}

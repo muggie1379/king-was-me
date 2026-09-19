@@ -1,0 +1,13 @@
+{
+  "version": "v6.6.0",
+  "target": "E:/KING WAS ME/development",
+  "applied": true,
+  "baselineSha256": "bbd6aebede4ac69fec96c36373c223bd84350b4bd5cbfe9625703ee80e7c59c9",
+  "htmlSha256": "bab9ae4a51cca70885a4d3706eb4790325575390757f56c265382be7a39dd908",
+  "blindSha256": "98fb8f4a2b4d0adf0b3e40409a625d73f1e324854bb34555cd1ad68b2757c093",
+  "runtimeChecks": "PASS: syntax, regression, 14 Round1 endings, 126 complete ending paths",
+  "browserChecks": "BLOCKED: local file URL security policy",
+  "applicationDate": "2026-09-18",
+  "validationLocation": "E:/KING WAS ME/development",
+  "blindUnchanged": true
+}
