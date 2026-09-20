@@ -1386,7 +1386,7 @@ KING WAS ME
 { rian_introduced && karden_introduced && northContact <= 1:
     리안: 우리가 몇 통을 보냈는지는 기록에 남습니다. 답이 없었다는 것도 남고요.
     카르덴: 저쪽에 사람을 덜 쓴 만큼 이쪽은 돌아갑니다. 모든 왕국이 답을 하는 건 아닙니다.
-    리안: 그래도... 아직 오지 않은 것뿐일 수도 있습니다.
+    리안: 아직 오지 않은 것뿐일 수도 있습니다.
 }
 + [문의 서신을 보낸다]
     { consistent("careful"):
@@ -1496,7 +1496,7 @@ KING WAS ME
     ~ initiative += 1
     ~ last_family = "active"
     우리 쪽에서 지점을 둘 더 제안한다. 북부는 하나만 받고 하나는 다음에 보자고 했다.
-    { rian_introduced: 리안: 하나를 남겨 둔 것은 다음에 만날 이유를 남긴 겁니다. }
+    { rian_introduced: 리안: 하나는 받고 하나는 다음에 보자고 했습니다. 그 말 그대로 적어 두겠습니다. }
     -> event_22
 + [시험 기간을 정해 두고 받는다]
     ~ treasury -= 1
