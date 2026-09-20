@@ -78,6 +78,12 @@ VAR north_form = "wary"        // quiet_trust | wary | frozen
 VAR south_pressure = 0         // 우리가 응해 온 정도. 오를수록 요구가 커진다
 VAR south_elsewhere = 0        // 남부가 다른 상대를 본 횟수. 미루면 오른다
 VAR south_form = "contract"    // partner | contract | slowed
+
+// ── 서부 (D13 비대칭형) ──
+// 아쉬운 티를 내면 조건이 나빠진다. 남부와 정반대로 작동한다.
+VAR west_debt = 0              // 우리가 아쉬운 쪽임을 드러낸 정도. 낮아야 대등해진다
+VAR west_form = "dependent"    // equal | traded | dependent
+VAR ration_seen = false
 VAR backlog_seen = false
 
 // ── 1층: 선택 이력 ──
@@ -512,16 +518,16 @@ VAR morale = 7
 서부 연합이 정기 지원(곡물/물자)을 이번 시즌부터 줄이겠다고 통보한다. 적대적이지 않다.
 { seran_introduced: 세르안: 예전엔 물어볼 필요도 없던 일입니다. }
 { seran_introduced: 세르안: 그만큼 우리도 공급 계획을 다시 확인해야 합니다. }
-+ [이유를 캐묻는다] -> event_10
++ [이유를 캐묻는다] -> west_02
 + [우리 쪽도 자연스럽게 받아들인다]
     ~ westWarmth -= 1
-    -> event_10
+    -> west_02
 + [서신으로 서운함을 전한다]
     ~ westWarmth += 1
-    -> event_10
+    -> west_02
 + [대체 공급망을 알아본다]
     ~ westWarmth -= 1
-    -> event_10
+    -> west_02
 
 === event_10 ===
 // [동부] 작은 선물
@@ -569,14 +575,14 @@ VAR morale = 7
 { valen_introduced: 발렌: 심각하게 갈 필요 없다는 거군. }
 + [직접 참석]
     ~ coastalFamiliarity += 2
-    -> event_13
+    -> west_04
 + [사절만 파견]
     ~ coastalFamiliarity += 1
-    -> event_13
+    -> west_04
 + [선물만 보냄]
     ~ coastalFamiliarity += 1
-    -> event_13
-+ [참석하지 않음] -> event_13
+    -> west_04
++ [참석하지 않음] -> west_04
 
 === event_13 ===
 // [동부] 취소된 회담
@@ -704,13 +710,13 @@ VAR morale = 7
 { valen_introduced: 발렌: 확인하면 됩니다. }
 { rian_introduced: 리안: 상대가 움직일 자리를 남기십시오. }
 { karden_introduced: 카르덴: 우리의 손실도 생각해야 합니다. 참고로 남부 재협상 건도 아직 답을 못 드렸습니다. }
-+ [기다림 지속] -> event_18
-+ [직접 확인] -> event_18
-+ [제한 접촉] -> event_18
-+ [경계 강화] -> event_18
++ [기다림 지속] -> west_06
++ [직접 확인] -> west_06
++ [제한 접촉] -> west_06
++ [경계 강화] -> west_06
 + [직접 동부로 간다]
     ~ royal_visit = true
-    -> event_18 // Major Branch — ACT IV 전면 교체
+    -> west_06 // Major Branch — ACT IV 전면 교체
 
 === event_18 ===
 // 라우터: E17 royal_visit에 따라 분기
@@ -1055,9 +1061,9 @@ VAR morale = 7
 { chaplain_introduced: {name_chaplain}: 이번 협력의 조건부터 함께 살펴봅시다. }
 // [해안/서부] 다시 믿는 일
 새로운 협력이 필요한 일이 생긴다. 이번에는 상대를 먼저 믿어야 시작되는 종류다.
-+ [다시 신뢰해봄] -> event_28
-+ [천천히 확인] -> event_28
-+ [아직 거리 유지] -> event_28
++ [다시 신뢰해봄] -> west_08
++ [천천히 확인] -> west_08
++ [아직 거리 유지] -> west_08
 
 === event_28 ===
 ~ fool_introduced = true
@@ -1147,6 +1153,290 @@ KING WAS YOU
 KING WAS ME
 -> END
 
+
+// ╔════════════════════════════════════════════════════════════════════════╗
+// ║  서부 루트 — 우리가 아쉬운 쪽                                            ║
+// ║  D13 비대칭형. 아쉬운 티를 내면 조건이 나빠진다(west_debt).               ║
+// ║  ★ 남부와 정반대다. 남부는 유보하면 떠나고, 서부는 유보해야 체면이 선다.  ║
+// ║    한 나라에서 배운 규칙을 그대로 쓰면 다른 나라에서 손해를 본다.         ║
+// ║  곡물이 실제로 움직이는 유일한 루트이기도 하다.                          ║
+// ╚════════════════════════════════════════════════════════════════════════╝
+
+=== west_02 ===
+-> clamp_state ->
+// [서부] 겨울 계산
+// │ 장면: 서부 없이 겨울을 나는 계산을 해 본다. 숫자가 빠듯하다.
+// │ 영향: grain 압박 시작. west_debt — 아쉬운 소리를 하면 오른다.
+// │ 은유: 혼자 해 보려 했는데 잘 안 될 때.
+// └ 상태: 서부 1번 칸. 관계 방식 = 구분(세르안 · 카르덴)
+줄어든 지원분을 빼고 겨울 계산을 다시 했다. # act: 2 # title: 겨울 계산
+모자란다. 크게는 아니고, 봄이 늦으면 걸릴 만큼이다.
+// 구분 — 비슷해 보이나 세는 것이 다르다.
+{ seran_introduced && karden_introduced:
+    세르안: 모자란 양이 얼마인지부터 확정해야 합니다. 추정으로 움직이면 두 번 씁니다.
+    카르덴: 확정되기 전에도 창고는 비어 갑니다. 저는 그 속도를 봅니다.
+}
++ [부족분을 서부에 다시 요청한다]
+    ~ west_debt += 1
+    ~ grain += 1
+    ~ spent += 1
+    ~ last_family = "active"
+    요청은 받아들여졌다. 양은 절반이고, 회신 말미에 "이번에는"이라는 말이 붙었다.
+    -> event_10
++ [해안 상단에 조용히 알아본다]
+    ~ treasury -= 1
+    ~ grain += 1
+    ~ coastalFamiliarity += 1
+    ~ spent += 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    해안 쪽에서 값을 조금 더 주고 채웠다. 서부에는 알리지 않았다.
+    -> event_10
++ [배급 계획을 먼저 고친다]
+    ~ morale -= 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    배급표가 다시 쓰였다. 줄어든 줄은 국경 마을 쪽이다.
+    -> event_10
++ [봄까지 지켜본다]
+    ~ grain -= 1
+    ~ last_family = "careful"
+    추가 조치는 없다. 창고 장부의 숫자가 매주 조금씩 줄어든다.
+    -> event_10
+
+=== west_04 ===
+-> clamp_state ->
+// 라우터: 남부와 사이가 좋으면 조건이 남부를 거쳐 온다(루트 교차)
+{ south_elsewhere <= 1 && southLeverage >= 6:
+    -> west_04_broker
+- else:
+    -> west_04_direct
+}
+
+=== west_04_direct ===
+// [서부] 불리한 조건
+// │ 장면: 서부가 지원 재개를 제안한다. 조건이 예전보다 우리에게 불리하다.
+// │ 영향: grain 회복 vs west_debt. 강경이 서부에는 실제로 먹힌다(해석표).
+// │ 은유: 아쉬운 쪽이 나라서 조건을 고르기 어려운 상황.
+// └ 상태: 남부 경유 조건 불충족
+서부가 지원 재개를 제안해 왔다. 양은 예전만 하다. # act: 3 # title: 불리한 조건
+다만 대금 지급 시점이 앞당겨졌고, 미납 시 조항이 새로 붙었다.
+{ valen_introduced: 발렌: 이건 지원이 아니라 거래입니다. }
+{ karden_introduced: 카르덴: 거래라도 창고는 찹니다. }
++ [조건대로 받는다]
+    ~ grain += 3
+    ~ treasury -= 1
+    ~ west_debt += 1
+    ~ spent += 1
+    ~ reciprocity += 1
+    ~ last_family = "active"
+    서명은 하루 만에 끝났다. 곡물은 다음 주에 들어왔다.
+    -> west_04_after
++ [조항을 다투고 받는다]
+    ~ grain += 2
+    ~ spent += 1
+    ~ selfProtection += 1
+    ~ last_family = "hard"
+    // 서부에는 강경이 먹힌다 — 대등해질 수 있는 유일한 통로(해석표)
+    미납 조항 두 줄이 빠졌다. 서부 대표는 기분 상한 기색 없이 고쳐 왔다.
+    { seran_introduced: 세르안: 저쪽은 우리가 다툴 줄 몰랐던 것 같습니다. }
+    -> west_04_after
++ [이번 시즌은 받지 않는다]
+    ~ grain -= 3
+    ~ west_debt -= 1
+    ~ selfProtection += 1
+    ~ last_family = "hard"
+    회신은 짧았다. 창고는 그대로고, 대신 새 조항도 없다.
+    -> west_04_after
++ [남부 쪽 물량으로 대신한다]
+    ~ grain += 2
+    ~ treasury -= 2
+    ~ southLeverage -= 1
+    ~ spent += 1
+    ~ last_family = "careful"
+    남부 상단이 값을 조금 더 불렀다. 서부에는 아무 말도 하지 않았다.
+    -> west_04_after
+
+=== west_04_broker ===
+// [서부] 건너서 오는 말
+// │ 장면: 서부 조건이 남부 상단을 거쳐 전해진다. 직접 말할 사이가 아직 아니다.
+// │ 영향: 루트 교차 — 남부와 잘 지낼 때만 열린다. 대신 남부에 빚이 생긴다.
+// │ 은유: 직접 말할 사이가 아니어서 사람을 끼워 넣는 관계.
+// └ 상태: south_elsewhere <= 1 && southLeverage >= 6
+서부의 새 조건이 남부 상단을 통해 전해졌다. # act: 3 # title: 건너서 오는 말
+서부에서 직접 온 문서는 없다. 남부 대표가 구두로 옮기고, 우리 쪽이 받아 적었다.
+{ rian_introduced: 리안: 저쪽이 우리에게 직접 쓰지 않았다는 것도 조건의 일부입니다. }
+{ valen_introduced: 발렌: 그래서 받습니까, 맙니까? }
++ [남부를 통해 그대로 수락한다]
+    ~ grain += 3
+    ~ southLeverage -= 1
+    ~ spent += 1
+    ~ last_family = "careful"
+    합의는 남부 문서에 얹혀 성립했다. 서부와 우리 이름이 같은 장에 적히지는 않았다.
+    -> west_04_after
++ [서부에 직접 회신한다]
+    ~ grain += 3
+    ~ west_debt += 1
+    ~ spent += 1
+    ~ initiative += 1
+    ~ last_family = "active"
+    우리 쪽에서 먼저 서부로 문서를 보냈다. 회신은 왔고, 조건은 한 줄 더 불리해졌다.
+    -> west_04_after
++ [중개는 받지 않겠다고 답한다]
+    ~ grain -= 2
+    ~ west_debt -= 1
+    ~ selfProtection += 1
+    ~ last_family = "hard"
+    남부 대표는 난처해했다. 그 다음 달, 서부에서 직접 온 문서가 한 장 있었다.
+    -> west_04_after
+
+=== west_04_after ===
+-> clamp_state ->
+// 라우터: 곡물이 밴드를 내려가면 배급 사건이 올라온다(D15)
+{ grain <= 5 && not ration_seen:
+    -> home_ration
+- else:
+    -> event_13
+}
+
+=== home_ration ===
+~ ration_seen = true
+// [내정] 겨울 배급
+// │ 장면: 창고 담당자가 배급표를 다시 가져온다. 숫자가 지난번과 다르다.
+// │ 영향: 외교(서부)의 결과가 내정 숫자로 도착하는 지점. home_backlog와 같은 고리.
+// │ 은유: 몸이 먼저 티를 내는 순간. 아직 아프다고는 안 한다.
+// └ 상태: grain <= 5에서만. 한 회차 1회
+창고 담당자가 배급표를 다시 들고 왔다. # act: 3 # title: 겨울 배급
+숫자가 지난번과 다르다. 사정을 설명하지는 않는다. 어디를 줄일지만 묻는다.
+{ karden_introduced: 카르덴: 도성부터 줄이면 소리가 먼저 납니다. 변경부터 줄이면 소리가 늦게 납니다. }
+{ rian_introduced: 리안: 늦게 나는 것과 안 나는 것은 다릅니다. }
++ [도성부터 고르게 줄인다]
+    ~ morale -= 1
+    ~ last_family = "careful"
+    배급이 전체적으로 한 칸씩 내려갔다. 불평은 있었고 소요는 없었다.
+    -> event_13
++ [국경 마을부터 줄인다]
+    ~ morale -= 2
+    ~ labor += 1
+    ~ last_family = "hard"
+    변경 쪽 배급이 먼저 줄었다. 도성에서는 아무 일도 없었다.
+    -> event_13
++ [국고를 풀어 메운다]
+    ~ treasury -= 2
+    ~ grain += 1
+    ~ last_family = "active"
+    부족분을 값을 치러 채웠다. 배급표는 고치지 않았다.
+    -> event_13
+
+=== west_06 ===
+-> clamp_state ->
+// 라우터: 아쉬운 티를 얼마나 냈는가에 따라 다른 장면이 온다
+{ west_debt >= 2:
+    -> west_06_repay
+- else:
+    -> west_06_invite
+}
+
+=== west_06_invite ===
+// [서부] 초대
+// │ 장면: 서부 의회가 우리 사절을 초청한다. 격식이 우리보다 한참 위다.
+// │ 영향: treasury(의전 비용) vs westWarmth. 안 가는 것도 선택지다.
+// │ 은유: 상대의 자리에 갔을 때 느끼는 격차.
+// └ 상태: west_debt < 2 — 아쉬운 티를 덜 낸 왕에게 온다
+서부 의회가 우리 사절을 정식으로 초청했다. # act: 4 # title: 초대
+초청장에 의전 절차가 네 장 붙어 있다. 우리 쪽 예법서에는 없는 항목이 여섯 개다.
+{ karden_introduced: 카르덴: 예복과 수행까지 맞추면 이번 분기 예산의 한 몫입니다. }
+{ seran_introduced: 세르안: 초청은 초청입니다. 조건이 붙어 있지는 않습니다. }
++ [격식을 맞춰 간다]
+    ~ treasury -= 2
+    ~ westWarmth += 1
+    ~ spent += 1
+    ~ last_family = "active"
+    사절단이 절차대로 갔다. 돌아온 보고에는 저쪽 의회 건물 이야기가 길게 적혀 있다.
+    -> event_18
++ [우리 예법대로 간다]
+    ~ treasury -= 1
+    ~ spent += 1
+    ~ selfProtection += 1
+    ~ last_family = "hard"
+    우리 방식으로 갔다. 저쪽에서 별다른 언급은 없었다. 자리 배치는 뒤쪽이었다.
+    -> event_18
++ [서신으로 감사만 전한다]
+    ~ westWarmth -= 1
+    ~ west_debt -= 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    정중한 사양이 갔다. 다음 초청은 오지 않았다. 다음 문서는 평소대로 왔다.
+    -> event_18
+
+=== west_06_repay ===
+// [서부] 갚는 방식
+// │ 장면: 받은 것을 갚으려 한다. 서부는 대수롭지 않다는 반응이다.
+// │ 영향: ★ 갚아도 westWarmth가 거의 움직이지 않는다 — 이 루트의 핵심 통증.
+// │ 은유: 갚고 싶은 마음이 상대에게는 부담도 아닌 관계.
+// └ 상태: west_debt >= 2
+그동안 받은 것을 정리해 갚을 방법을 찾는다. # act: 4 # title: 갚는 방식
+서부 회신은 짧다. 급하지 않다고, 편할 때 하라고 적혀 있다.
+{ rian_introduced: 리안: 저쪽에서는 셈이 크지 않은 겁니다. 우리 쪽에서만 큽니다. }
+{ karden_introduced: 카르덴: 그래도 장부에는 남습니다. }
++ [무리해서라도 갚는다]
+    ~ treasury -= 2
+    ~ west_debt -= 1
+    ~ reciprocity += 1
+    ~ last_family = "active"
+    대금이 일시에 나갔다. 서부 회신은 두 줄이다. 받았다는 것과, 다음 분기 일정.
+    -> event_18
++ [나눠 갚기로 하고 일정만 보낸다]
+    ~ treasury -= 1
+    ~ spent += 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    분할 일정표가 갔다. 서부는 그대로 승인했다. 고맙다는 말도 재촉도 없다.
+    -> event_18
++ [갚을 것이 생길 때까지 적어만 둔다]
+    ~ caution += 1
+    ~ last_family = "careful"
+    장부에 한 줄이 늘었다. 이번 분기에는 아무 일도 하지 않았다.
+    -> event_18
+
+=== west_08 ===
+-> clamp_state ->
+// [서부] 줄 것이 생겼을 때 — west_form 확정
+// │ 장면: 우리 쪽이 먼저 줄 수 있는 것이 생긴다(종자·기술·중개).
+// │ 영향: west_form = equal | traded | dependent. 어느 쪽도 실패가 아니다(D18).
+// │ 은유: 받기만 하던 관계에서 처음으로 줄 것이 생겼을 때.
+// └ 상태: 서부 마지막 칸. equal은 아쉬운 티를 덜 낸 왕에게만 열린다
+우리 쪽 종자 개량이 자리를 잡았다. 서부 북부 지역 기후에 맞는 품종이다. # act: 5 # title: 줄 것이 생겼을 때
+처음으로, 저쪽이 아쉬울 수 있는 것이 우리에게 있다.
+{ west_debt >= 2 && karden_introduced: 카르덴: 아직 갚을 것이 남아 있는 상태입니다. 먼저 꺼내기 어렵습니다. }
+{ west_debt <= 0 && seran_introduced: 세르안: 이번에는 우리가 조건을 적어 보낼 수 있습니다. }
++ [대등한 교환으로 제안한다]
+    { west_debt <= 0:
+        ~ west_form = "equal"
+        제안서에 양쪽 항목이 같은 수로 적혔다. 서부는 두 줄만 고쳐 돌려보냈다.
+    - else:
+        ~ west_form = "traded"
+        제안서는 갔다. 회신에는 우리 쪽 미납분이 먼저 정리돼 있었다.
+    }
+    ~ spent += 1
+    ~ initiative += 1
+    ~ last_family = "active"
+    -> event_28
++ [기존 지원과 상계하자고 제안한다]
+    ~ west_form = "traded"
+    ~ west_debt -= 1
+    ~ treasury += 1
+    ~ spent += 1
+    ~ last_family = "careful"
+    셈이 맞춰졌다. 받던 양은 줄었고 갚을 것도 줄었다. 장부가 단순해졌다.
+    -> event_28
++ [종자는 우리가 쓰고 알리지 않는다]
+    ~ west_form = "dependent"
+    ~ grain += 2
+    ~ caution += 1
+    ~ last_family = "careful"
+    품종은 국내에 먼저 풀렸다. 서부와의 관계는 지금까지와 같다.
+    -> event_28
 
 // ╔════════════════════════════════════════════════════════════════════════╗
 // ║  남부 루트 — 먼저 오고, 기다려주지 않는다                               ║
