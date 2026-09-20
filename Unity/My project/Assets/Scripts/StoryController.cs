@@ -81,8 +81,7 @@ public class StoryController : MonoBehaviour
 
         story = new Story(catalog.story.storyJson);
         story.onError += OnStoryError;
-        advancePromptText.gameObject.SetActive(false); // 제목 화면 뒤로 "클릭해서 계속"이 비쳐 보이지 않게
-        advanceCatcher.gameObject.SetActive(false);
+        SetChromeVisible(false); // 제목 화면 뒤로 왕실 기록·서재 버튼·"클릭해서 계속"이 비치지 않게
         hud.ShowTitle(BeginStory);
     }
 
@@ -301,6 +300,7 @@ public class StoryController : MonoBehaviour
     }
 
     Text advancePromptText;
+    GameObject studyButton;
 
     // 임시 화면(컷신/서재/지도) 연결과 HUD의 서재 버튼. 그림이 준비되면 TempScreens의 배경만 교체한다.
     void BuildTempScreens(Transform canvasT)
@@ -311,6 +311,7 @@ public class StoryController : MonoBehaviour
         screens.OnConvene = () => { /* 회의는 이미 진행 중인 화면으로 돌아간다 */ };
 
         var go = new GameObject("StudyButton", typeof(RectTransform));
+        studyButton = go;
         go.transform.SetParent(canvasT, false);
         var rt = (RectTransform)go.transform;
         rt.anchorMin = rt.anchorMax = new Vector2(0.97f, 0.985f);
@@ -335,6 +336,20 @@ public class StoryController : MonoBehaviour
         var t = tGO.AddComponent<Text>();
         t.font = UiFonts.Sans; t.fontSize = 18; t.alignment = TextAnchor.MiddleCenter; t.color = new Color(0.96f, 0.92f, 0.82f);
         t.text = "서재"; t.raycastTarget = false;
+    }
+
+    // 제목 화면 동안 게임 UI 전체를 감춘다. 배경 그림만 비치게 두는 것이 의도다.
+    void SetChromeVisible(bool visible)
+    {
+        hud.SetHudVisible(visible);
+        if (studyButton != null) studyButton.SetActive(visible);
+        // 진행 프롬프트/클릭 캐처는 평소 ShowNextLine·SetChoiceMode가 상태를 쥐고 있다.
+        // 여기서는 감추기만 하고, 되살리는 일은 그 흐름에 맡긴다(중복 제어 방지).
+        if (!visible)
+        {
+            advancePromptText.gameObject.SetActive(false);
+            advanceCatcher.gameObject.SetActive(false);
+        }
     }
 
     // 입력 잠금: Destroy()는 프레임 끝에 실행되므로 한 프레임 안에 클릭이 겹치면 이미 선택된 버튼이 다시 눌릴 수 있다.
@@ -405,6 +420,7 @@ public class StoryController : MonoBehaviour
     void BeginStory()
     {
         storyStarted = true;
+        SetChromeVisible(true);
         AdvanceStory();
     }
 

@@ -21,6 +21,8 @@ public class GameHud
     Text recordBody;
     Text chapterText;
     GameObject titlePanel;
+    GameObject chapterPanel;
+    GameObject recordPanel;
 
     public GameHud(Transform root, Font font, CourtRoster roster)
     {
@@ -40,6 +42,7 @@ public class GameHud
     void BuildChapter()
     {
         var go = NewRect("Chapter", root, new Vector2(0.05f, 0.955f), new Vector2(0.75f, 0.995f));
+        chapterPanel = go;
         chapterText = AddText(go, 20, TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, 0.7f));
         SetTitle(null);
     }
@@ -66,6 +69,7 @@ public class GameHud
     void BuildRecordPanel()
     {
         var go = NewRect("RoyalRecord", root, new Vector2(0.76f, 0.35f), new Vector2(0.95f, 0.945f));
+        recordPanel = go;
         var bg = go.AddComponent<Image>();
         bg.color = new Color(0f, 0f, 0f, 0.42f);
         bg.raycastTarget = false;
@@ -103,6 +107,15 @@ public class GameHud
             sb.AppendLine("· " + records[i]);
         }
         recordBody.text = sb.ToString();
+    }
+
+    // 제목 화면 동안 게임 UI를 감춘다. 배경 그림은 그대로 두고 UI 크롬만 끈다
+    // (제목 패널이 알파 0.88이라 뒤가 비치는데, 비쳐야 하는 건 배경이지 왕실 기록이 아니다).
+    public void SetHudVisible(bool visible)
+    {
+        if (chapterPanel != null) chapterPanel.SetActive(visible);
+        if (recordPanel != null) recordPanel.SetActive(visible);
+        if (Seats != null) Seats.gameObject.SetActive(visible);
     }
 
     // ---- 첫 화면: 무슨 게임인지 ----
