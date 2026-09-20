@@ -20,12 +20,21 @@ public class TempScreens : MonoBehaviour
     bool cutFadingOut;
     Action cutDone;
 
+    // 엔딩 타이틀 카드(KING WAS YOU / KING WAS ME). 본문 줄이 아니라 연출이다.
+    RectTransform cardRoot;
+    CanvasGroup cardGroup;
+    Text cardLabel;
+    float cardT, cardHold;
+    int cardPhase;          // 0 페이드인 / 1 유지 / 2 페이드아웃 / 3 정지(마지막 카드)
+    bool cardFinal;
+    Action cardDone;
+
     readonly Dictionary<string, bool> met = new Dictionary<string, bool>();
     public Func<List<string>> RecordProvider;     // 왕실 기록(선택 이력)
     public Func<Sprite> BackgroundProvider;       // 현재 배경(임시 스틸로 사용)
     public Action OnConvene;                      // 서재에서 "회의 소집하기"
 
-    public bool IsOpen => (cutRoot != null && cutRoot.gameObject.activeSelf) || (studyRoot != null && studyRoot.gameObject.activeSelf) || (mapRoot != null && mapRoot.gameObject.activeSelf);
+    public bool IsOpen => (cutRoot != null && cutRoot.gameObject.activeSelf) || (studyRoot != null && studyRoot.gameObject.activeSelf) || (mapRoot != null && mapRoot.gameObject.activeSelf) || (cardRoot != null && cardRoot.gameObject.activeSelf);
 
     public static TempScreens Create(Transform canvas)
     {
@@ -42,6 +51,60 @@ public class TempScreens : MonoBehaviour
     public void MarkMet(string kingdomId) { if (!string.IsNullOrEmpty(kingdomId)) met[kingdomId] = true; }
     public void MarkAllMet() { foreach (var k in new[] { "north", "east", "south", "west" }) met[k] = true; }
     public void ResetMet() { met.Clear(); }
+
+    // ------------------------------------------------------------------ 타이틀 카드
+    // 게임 전체에서 가장 중요한 두 줄(KING WAS YOU / KING WAS ME)을 본문에서 분리한다.
+    // 검은 화면에 글자만. 버튼도 프롬프트도 없다 — 읽는 동안 아무것도 요구하지 않는다.
+    // final=true면 페이드아웃하지 않고 그대로 멈춘다. 게임의 마지막 화면이다.
+    public void ShowTitleCard(string text, float hold, bool final, Action onDone)
+    {
+        canvas.SetAsLastSibling();
+        if (cardRoot != null) Destroy(cardRoot.gameObject);
+        cardRoot = Node("TitleCard", canvas);
+        Stretch(cardRoot);
+        cardGroup = cardRoot.gameObject.AddComponent<CanvasGroup>();
+        cardGroup.alpha = 0f;
+        cardGroup.blocksRaycasts = true;
+
+        var bg = Node("Black", cardRoot);
+        Stretch(bg);
+        var img = bg.gameObject.AddComponent<Image>();
+        img.color = Color.black;
+        img.raycastTarget = true; // 뒤로 클릭이 새지 않게
+
+        cardLabel = Label(cardRoot, text ?? "", 64, TextAnchor.MiddleCenter, Color.white, UiFonts.Serif);
+        cardLabel.lineSpacing = 1.2f;
+        Place(cardLabel.rectTransform, new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 160));
+
+        cardT = 0f; cardHold = hold; cardPhase = 0; cardFinal = final; cardDone = onDone;
+        cardRoot.gameObject.SetActive(true);
+    }
+
+    void TickTitleCard()
+    {
+        if (cardRoot == null || !cardRoot.gameObject.activeSelf) return;
+        cardT += Time.unscaledDeltaTime;
+        if (cardPhase == 0)
+        {
+            cardGroup.alpha = Mathf.MoveTowards(cardGroup.alpha, 1f, Time.unscaledDeltaTime / 1.4f);
+            if (cardGroup.alpha >= 0.999f) { cardPhase = 1; cardT = 0f; }
+        }
+        else if (cardPhase == 1)
+        {
+            if (cardT >= cardHold) { cardPhase = cardFinal ? 3 : 2; cardT = 0f; }
+        }
+        else if (cardPhase == 2)
+        {
+            cardGroup.alpha = Mathf.MoveTowards(cardGroup.alpha, 0f, Time.unscaledDeltaTime / 1.0f);
+            if (cardGroup.alpha <= 0.001f)
+            {
+                var done = cardDone; cardDone = null;
+                cardRoot.gameObject.SetActive(false);
+                done?.Invoke();
+            }
+        }
+        // cardPhase == 3: 마지막 카드. 아무것도 하지 않는다.
+    }
 
     // ------------------------------------------------------------------ cutscene
     public void ShowCutscene(Sprite art, string kicker, string title, string caption, Action onContinue)
@@ -284,6 +347,7 @@ public class TempScreens : MonoBehaviour
     // ------------------------------------------------------------------ update / close
     void Update()
     {
+        TickTitleCard();
         if (cutRoot != null && cutRoot.gameObject.activeSelf)
         {
             cutT += Time.unscaledDeltaTime;

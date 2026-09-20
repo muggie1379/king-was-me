@@ -1322,8 +1322,8 @@ VAR morale = 7
 -> king_was_you
 
 === king_was_you ===
-// 첫 타이틀
-KING WAS YOU
+// 첫 타이틀 — 본문 줄이 아니라 연출이다. `# card`가 전체 화면 타이틀 카드를 세운다.
+KING WAS YOU # card
 -> phone_message
 
 === phone_message ===
@@ -1354,10 +1354,10 @@ KING WAS YOU
 
 === final_line ===
 // 마지막 대사 — 게임 전체에서 유일한 왕의 직접 발화
-// 암전·타이틀 카드는 텍스트가 아니라 엔딩 프레젠터가 연출로 처리한다(미구현).
-// 그때까지 `KING WAS ME`는 임시로 텍스트로 남는다.
+// `# card: final`은 페이드아웃하지 않고 그대로 멈춘다. 게임의 마지막 화면이다.
+// D18: 이 줄에는 어떤 조건도 걸지 않는다. 모든 경로에서 도달하는 것이 서열 없음의 보증이다.
 "내가 결정하지."
-KING WAS ME
+KING WAS ME # card: final
 -> END
 
 

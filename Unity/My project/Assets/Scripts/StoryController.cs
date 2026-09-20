@@ -571,6 +571,21 @@ public class StoryController : MonoBehaviour
             var beat = pendingLines[lineIndex];
             if (beat.tags.TryGetValue("title", out var eventTitle)) { hud.SetTitle(eventTitle); hud.Seats.ClearGuests(); } // 새 사건: 이전 방문자는 물러난다
             if (beat.tags.TryGetValue("met", out var metId)) screens.MarkMet(metId);
+            // 엔딩 타이틀 카드. 본문 줄로 흘리지 않고 연출로 세운다(`# card` / `# card: final`).
+            if (beat.tags.TryGetValue("card", out var cardKind))
+            {
+                var isFinal = cardKind != null && cardKind.Trim() == "final";
+                inputLocked = true;
+                SetChoiceMode(false);
+                advanceCatcher.gameObject.SetActive(false);
+                advancePromptText.gameObject.SetActive(false);
+                storyText.text = "";
+                hud.SetTitle(null);
+                lineIndex++;
+                screens.ShowTitleCard(beat.text, isFinal ? 6f : 2.6f, isFinal,
+                    () => { inputLocked = false; ShowNextLine(); });
+                return;
+            }
             if (beat.tags.TryGetValue("scene", out var sceneKind) && sceneKind == "cutscene")
             {
                 // 컷신: 이 줄과 이어지는 서술 줄(최대 3줄)을 캡션으로, 전체 화면 스틸 + 느린 카메라 이동. 끝나면 다음 줄부터 이어간다.
