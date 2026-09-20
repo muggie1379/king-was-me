@@ -179,16 +179,89 @@ VAR fool_introduced = false
 
 === event_06 ===
 ~ rian_introduced = true
-리안 소개: 외교관 리안이 회의에 합류한다.
-// [동부] 두 번째 사절
-동부가 다시 먼저 사절을 보낸다. "시간이 맞으면 다시 이야기하자"에 가까운 표현.
-{ rian_introduced: 리안: 한 걸음 왔다고 우리가 두 걸음 갈 필요는 없습니다. }
+// [동부] 두 번째 사절 — MVP(KINGDOM_SLICE second_envoy) 도입 대화/의견/대신 간 논쟁/선택 후 반응 이식. 리안 첫 등장 사건.
+// 선택지 4개 이름, eastWarmth 증감, -> event_07 연결은 기존과 동일. 「다음 행동은 동부에 맡김」의 선택 후 반응은 MVP에 없어 새로 쓴 부분.
+// 참고: Unity는 다음 선택까지의 한 묶음을 읽은 뒤 소개 변수를 반영하므로 리안 좌석은 사건 시작부터 보인다(등장 서술은 그 전제로 씀).
+# scene: council
+# title: 두 번째 사절
+아침 안개가 걷히기도 전, 망루에서 봉화가 오른다. # phase: narration
+망루병: 동부 깃발입니다! 지난번과 같은 문양입니다.
+{ valen_introduced:
+    발렌: 또 왔군. # phase: exchange
+}
+{ seran_introduced:
+    세르안: 이번에는 우리가 부른 것이 아닙니다. # phase: exchange # to: valen # stance: clarify
+}
+{ valen_introduced:
+    발렌: 좋은 뜻으로 보면 되는 겁니까? # phase: exchange # to: seran # stance: question
+}
+{ seran_introduced:
+    세르안: 우호 신호인 것은 맞습니다. 그 이상의 의미는 아직 모릅니다. # phase: exchange # to: valen # stance: clarify
+}
+문이 열리고 지난번과 같은 사절이 들어온다. 이번에는 공식 문서 외에 작은 개인 서신도 함께 들고 있다. # phase: narration # enter: east_envoy
+동부 사절: 우리 왕께서 지난 환대를 기쁘게 기억하고 계십니다. # phase: exchange
+동부 사절: 조만간 두 나라가 조금 더 편하게 이야기를 나눌 자리를 만들 수 있기를 바란다고 하셨습니다.
+회의실 한쪽에서 낯선 인물이 조용히 미소 짓는다. # phase: narration
+리안: 상대가 먼저 한 걸음 왔군요. # phase: exchange
+{ valen_introduced:
+    발렌: 누구지? # phase: exchange # to: rian # stance: question
+}
+리안: 한 걸음을 두 걸음으로 만들지 않게 도와드릴 사람입니다. # phase: exchange # to: valen # stance: clarify
+외교관이 처음으로 왕실 회의에 합류한다. # phase: narration
+{ seran_introduced:
+    세르안: 우호적인 신호인 것은 맞습니다. 그러나 친근함과 약속은 다른 문제입니다. # phase: advisors
+}
+리안: 저쪽이 한 걸음 왔습니다. 우리도 한 걸음이면 충분합니다. 관계는 누가 더 많이 움직였는지 겨루는 일이 아닙니다. # phase: advisors
+{ valen_introduced:
+    발렌: 기회라면 잡아야 합니다. 다음 교류를 먼저 확정할 수 있습니다. # phase: advisors
+}
+{ seran_introduced:
+    세르안: 우호 신호라는 데는 동의합니다. 약속으로 읽지는 마십시오. # phase: exchange # to: rian # stance: counter
+}
+리안: 약속이라 부르지 않겠습니다. 다만 상대가 먼저 움직였다는 사실도 지우진 않겠습니다. # phase: exchange # to: seran # stance: clarify
 + [이전보다 적극적으로 응답]
     ~ eastWarmth += 1
+    왕의 결정에 따라 왕실은 지난 방문을 긍정적으로 받아들였으며, 앞으로의 왕래에도 열려 있다는 뜻을 전한다. # phase: aftermath
+    동부 사절: 기쁜 뜻으로 전하겠습니다.
+    { valen_introduced:
+        발렌: 속도가 붙는군요. 폐하께서 결론을 앞당기고 싶으신 걸 수도 있겠습니다.
+    }
+    리안: 아니면 상대의 한 걸음에 같은 정도로 답하신 걸 수도 있습니다. # to: valen # stance: counter
+    { seran_introduced:
+        세르안: 둘 다 가능성입니다. 그 이상은 아직 모르지요. # stance: clarify
+    }
+    동부 사절은 밝은 표정으로 돌아간다. 양국 사이의 왕래가 분명히 잦아졌다. # endphase # exit: east_envoy
     -> event_07
-+ [상대가 보인 만큼 응답] -> event_07
-+ [좋은 신호로 보되 더 관찰] -> event_07
-+ [다음 행동은 동부에 맡김] -> event_07
++ [상대가 보인 만큼 응답]
+    왕실은 상대가 보인 만큼의 온도로 화답한다. # phase: aftermath
+    리안: 좋습니다. 상대의 걸음 수를 세지 않아도 됩니다. 같은 방향이면 충분합니다.
+    { seran_introduced:
+        세르안: 그리고 아직 단정하지 않는 것도 중요합니다. # to: rian # stance: support
+    }
+    양국의 다음 만남은 자연스럽게 열리기 시작한다. # endphase # exit: east_envoy
+    -> event_07
++ [좋은 신호로 보되 더 관찰]
+    왕실은 호의를 받아들이되 추가 제안은 하지 않는다. # phase: aftermath
+    { valen_introduced:
+        발렌: 조금 차갑지 않습니까? # stance: question
+    }
+    { seran_introduced:
+        세르안: 서두르지 않는 것과 차가운 것은 다릅니다. # to: valen # stance: clarify
+    }
+    리안: 다만 상대도 우리 반응을 보고 있다는 점은 기억하십시오. # stance: clarify
+    동부 왕국은 교류를 멈추지 않았지만, 다음 움직임은 조심스러워졌다. # endphase # exit: east_envoy
+    -> event_07
++ [다음 행동은 동부에 맡김]
+    왕실은 이번에는 새 제안을 더하지 않고, 다음 움직임을 동부의 몫으로 남겨 둔다. # phase: aftermath
+    { valen_introduced:
+        발렌: 기다리시겠다는 겁니까? # stance: question
+    }
+    리안: 기다리는 것도 답의 한 가지입니다. 다만 상대가 그것을 무엇으로 읽는지는 우리가 정할 수 없습니다. # to: valen # stance: clarify
+    { seran_introduced:
+        세르안: 맡겼다는 사실은 남습니다. 무엇을 뜻했는지는 저쪽의 다음 움직임이 보여 주겠지요. # stance: clarify
+    }
+    사절은 예를 갖춰 물러난다. 다음 서신이 언제 올지는 아직 알 수 없다. # endphase # exit: east_envoy
+    -> event_07
 
 === event_07 ===
 // [북부] 다시 움직인 국경 (Event 03 후속)
@@ -209,17 +282,88 @@ VAR fool_introduced = false
 + [이전 대응 유지] -> event_08
 
 === event_08 ===
-// [동부] 공동 축제
-두 왕국이 공동 행사에 참여한다. 동부 쪽에서 머무는 시간을 조금 늘린다.
-{ seran_introduced: 세르안: 좋은 시간이었던 것과 다음 약속은 다른 사실입니다. }
+// [동부] 공동 축제 — MVP(KINGDOM_SLICE festival) 도입 대화/의견/선택 후 반응 이식. 선택지 4개 이름, eastWarmth 증감, -> event_09 연결은 기존과 동일(MVP와 선택지 4개가 1:1 대응이라 새로 쓴 줄 없음). 「더 함께 시간을 보냄」은 종료 태그를 붙이려고 마지막 서술(별다른 약속은 없었다…)을 대신들 말 뒤로 옮겼다.
+# scene: council
+# title: 공동 축제
+음악과 시장의 소리로 국경 마을이 가득 찬다. 두 나라의 깃발이 처음으로 한 광장에 나란히 걸린다. # phase: narration
+{ rian_introduced:
+    리안: 공식 일정은 거의 끝났습니다. 지금부터는 약속보다 서로가 얼마나 더 머무는지를 보시면 됩니다. # phase: exchange
+}
+{ valen_introduced:
+    발렌: 아니, 분위기도 보고서에 기록합니까? # phase: exchange # to: rian # stance: question
+}
+{ seran_introduced:
+    세르안: 때로는 숫자보다 더 중요한 정보가 됩니다. # phase: exchange # to: valen # stance: clarify
+}
+해가 지고 공식 행사가 끝난다. 왕실 사람들도 하나둘 자리에서 일어난다. # phase: narration # enter: east_envoy
+동부 사절: 폐하. # phase: exchange
+동부 사절: 시간이 괜찮으시다면… 조금 더 머물다 가시겠습니까?
+예정표에는 없던 제안이다. # phase: narration
+{ valen_introduced:
+    발렌: 상대가 먼저 연장했습니다. # phase: exchange
+}
+{ rian_introduced:
+    리안: 그러니까 더 중요합니다. 지금은 밀어붙일 순간인지, 그냥 즐길 순간인지. # phase: exchange # to: valen # stance: clarify
+}
+{ rian_introduced:
+    리안: 상대가 자발적으로 시간을 더 쓰겠다고 했습니다. 가까워진 신호는 맞습니다. 다만 가까워진 것과 약속한 것은 다릅니다. # phase: advisors
+}
+{ seran_introduced:
+    세르안: 좋은 정보입니다. 다만 오늘의 분위기가 미래의 약속을 대신하지는 않습니다. # phase: advisors
+}
+{ valen_introduced:
+    발렌: 흐름이 좋을 때 다음 교류까지 잡아두는 것이 효율적입니다. # phase: advisors
+}
 + [더 함께 시간을 보냄]
     ~ eastWarmth += 1
+    공식 수행원 대부분이 떠난 뒤에도 작은 정원에 불이 남는다. # phase: aftermath
+    동부 사절: 공식 자리보다 지금이 훨씬 편하군요.
+    왕은 자리를 떠나지 않는다. 그 선택만으로 대답을 대신한다.
+    { rian_introduced:
+        리안: 좋은 시간은 좋은 시간으로 남겨두는 것도 기술입니다.
+    }
+    { valen_introduced:
+        발렌: 적어도 더 머무는 쪽은 선택하셨군요. # stance: clarify
+    }
+    { seran_introduced:
+        세르안: 그 선택의 이유까지 붙이진 맙시다. # to: valen # stance: clarify
+    }
+    별다른 약속은 없었다. 하지만 돌아오는 길의 분위기는 이전과 달랐다. # endphase # exit: east_envoy
     -> event_09
 + [다음 만남을 먼저 제안]
     ~ eastWarmth += 1
+    왕실은 다음 교류를 먼저 제안한다. # phase: aftermath
+    동부 사절: 좋습니다. 일정이 맞으면 꼭 가겠습니다.
+    { valen_introduced:
+        발렌: 다음 움직임까지 확보했습니다.
+    }
+    { seran_introduced:
+        세르안: 확보라는 단어를 외교에 쓰지 마십시오. # to: valen # stance: counter
+    }
+    리안: 상대의 답이 ‘좋다’였다는 것과 일정이 확정됐다는 것은 다릅니다. # stance: clarify # endphase # exit: east_envoy
     -> event_09
-+ [좋은 분위기에서 종료] -> event_09
-+ [작은 호의만 건넴] -> event_09
++ [좋은 분위기에서 종료]
+    왕실은 좋은 분위기가 남아 있을 때 자리를 마무리한다. # phase: aftermath
+    동부 사절: 네. 다음에 또 뵙겠습니다.
+    { valen_introduced:
+        발렌: 기회가 있었는데요. # stance: question
+    }
+    { rian_introduced:
+        리안: 좋은 끝도 다음 시작을 만듭니다. # to: valen # stance: clarify
+    }
+    양국은 아쉬움이 조금 남은 채 각자의 길로 돌아간다. # endphase # exit: east_envoy
+    -> event_09
++ [작은 호의만 건넴]
+    왕실은 다음 일정 이야기를 꺼내지 않는다. 대신 축제 상인에게서 산 작은 과자 봉지가 사절에게 건너간다. # phase: aftermath
+    동부 사절: …이건 예상하지 못했습니다.
+    { rian_introduced:
+        리안: 가끔은 관계에 설명이 없는 여지도 필요합니다.
+    }
+    { valen_introduced:
+        발렌: 회의까지 해서 과자를 고른 셈이군요. # to: rian # stance: question
+    }
+    별다른 약속 없이 웃음이 짧게 남고, 그날의 축제는 끝난다. # endphase # exit: east_envoy
+    -> event_09
 
 === event_09 ===
 // [서부] 오래된 약속

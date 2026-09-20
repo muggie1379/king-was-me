@@ -33,8 +33,8 @@ Phase 1(콘텐츠 채우기)을 진행하던 중, 실제로 Unity 드래프트�
 | 1-b | 대신 명단 데이터화 (`AdvisorProfile`/`CourtRoster`, 카드 줄 동적화) | Claude | **완료** (5명 이상 레이아웃 미검증) |
 | 1-c | `AssetCatalog`(빌드 가능 에셋 참조) 완료, 배경 종횡비/Enter Play Mode Options 남음 | Claude | **일부 완료** |
 | 1-d | 사건 단계 러너 1차 + 좌석 뷰(의견 카드/발언 팝업/왕의 정적 연출/결정 카드) | Claude | **1차 완료** (Ink 태그 합의 대기) |
-| 1-e | 대신 관계 장면(논쟁·선택 후 반응·사절 등장) — 사용자 피드백 "너무 정적". 분석: `collaboration/reviews/mvp-relationship-scenes-gap_claude_20260919.md`. **사건 4 실적용·검증 완료**(`verification/unity-e04-staging-and-screens-20260919_claude_report.md`), 나머지 사건 이식은 MVP 원문 기준으로 계속 | Claude(+Codex 자료) | **시범 완료** |
-| 1-f | 임시 UI 화면(컷신/서재 허브/지도), 나눔 폰트 적용, 진행 길이 비노출 | Claude | 코드 작성됨, Unity 브리지 복구 후 컴파일/화면 확인 필요 |
+| 1-e | 대신 관계 장면(논쟁·선택 후 반응·사절 등장) — 사용자 피드백 "너무 정적". 분석: `collaboration/reviews/mvp-relationship-scenes-gap_claude_20260919.md`. **사건 4 실적용·검증 완료**(`verification/unity-e04-staging-and-screens-20260919_claude_report.md`), **사건 6·8도 MVP 원문 이식 완료**(inkjs 검증 PASS, Unity 화면 확인 미완료 — `verification/unity-e06-e08-transplant-20260919_claude_report.md`). 사건 11/13/15는 상태 함수 기반 변형이 많아 대응표부터, 비동부 사건은 Ink와 MVP 내용이 달라 정본 결정 필요 | Claude(+Codex 자료) | **시범 완료** |
+| 1-f | 임시 UI 화면(컷신/서재 허브/지도), 나눔 폰트 적용, 진행 길이 비노출 | Claude | 컴파일 통과 + Unity 화면 확인 완료(2026-09-20 CLI: 서재/지도/컷신 불투명·HUD 위 배치, 카드 팝업/흐림, 나눔 폰트). 남은 문제: 제목 화면 HUD 비침(수정안 확인 대기), 지도 라벨/컷신 캡션 가독성 — `verification/unity-screen-check-and-proposals-20260920_claude_report.md` |
 | 2 | Event 1~2 수직 슬라이스(의견 요약→논쟁→왕의 정적(좌석 시선)→선택→aftermath→기록), 개발용 상태 패널, 두 번째 게이트 E13 | Claude(+Codex 자료) | 예정 |
 | 3 | Ink 설계 메모 5곳 교체, E24/E25↔E23 연결, 엔딩 태그화·디렉터 | Codex 중심, Claude 검증 | 예정 |
 | 병행 | 좌석 포즈/회의장/UI 키트/폰트 후보 (`requests/unity-court-ui-design-handoff-claude-to-codex-20260919.md`), `ASSET_MANIFEST.md` 갱신 | Codex | 요청 전달됨 |

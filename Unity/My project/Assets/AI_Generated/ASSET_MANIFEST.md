@@ -167,3 +167,51 @@ The selected silhouette directions were re-rendered as restrained painterly cand
 | Images/Characters/External/Candidates/Batch_01/external_northern_guard_captain_candidate_v1.png | older weathered captain, heavy coat, border report case |
 
 Status: **visual draft / non-canon / candidate only**. Directional country labels identify current story function and do not canonize ethnicity, costume, culture, heraldry, personality, or relationship role. None is connected to runtime code. User selection is required before identity-preserving pose or expression work.
+
+
+## Batch 11 — Future Advisor Visual Selections and Circular Tokens
+
+User-selected current visual drafts:
+
+| Selected file | Character | Name status |
+|---|---|---|
+| Images/Characters/FutureAdvisors/Selected/Watcher/advisor_watcher_selected_visual_v1.png | 정보총관 베이라 | provisional name |
+| Images/Characters/FutureAdvisors/Selected/Chaplain/advisor_chaplain_selected_visual_v1.png | 대사제 오르반 | provisional name |
+| Images/Characters/FutureAdvisors/Selected/Fool/advisor_fool_selected_visual_v1.png | 광대 자벨 | confirmed name |
+| Images/Characters/FutureAdvisors/Selected/Archivist/advisor_archivist_selected_visual_v1.png | 기록관 아르데트 | provisional name |
+| Images/Characters/FutureAdvisors/Selected/KeeperOfFirstIntent/advisor_keeper_selected_visual_v1.png | 초심관 니아 | confirmed name |
+
+Status: **selected visual drafts / non-canon rendering**. Selection promotes the existing candidates for continued UI and composition work; it does not canonize ethnicity, clothing culture, exact age, or national identity. Reformer, Architect, Judge (Dan), and Physician do not yet have approved portrait sources.
+
+Circular face-token derivatives are stored under `Asset_Library/UI_System/Export_PNG/FutureAdvisorFaceTokens/`, with normal/hover/speaking/selected/disabled states at 256/128/64 px. Masters remain separate from runtime-ready derivatives.
+
+## Mockup 16 — Rian Large Portrait Dialogue Scene
+
+- `MVP/development/mockups/Dialogue/rian_large_portrait_dialogue_scene_v1.png`
+- Generated 2026-09-19 with the Codex built-in image generation tool, using `Images/Characters/advisor_rian_v2.png` as identity reference.
+- Purpose: test a dialogue-game composition with one large character illustration, a lower dialogue box, circular speaker token, and a memorable Rian-specific diplomatic observation.
+- Status: **non-canon in-game mockup**. It is not connected to Unity runtime and does not change story text.
+
+
+## Mockup 17 — Sequential Dialogue: Seran Response
+
+- `MVP/development/mockups/Dialogue/royal_reception_dialogue_02_seran_response_v1.png`
+- Generated 2026-09-20 with the Codex built-in image generation tool, using Mockup 16 for scene continuity and `Images/Characters/advisor_seran_v2.png` for identity.
+- Purpose: test the common dialogue-game alternation in which the previous speaker disappears and the responding character enters from the opposite side.
+- Rian is completely absent. Seran appears alone from the left and distinguishes an observed action from its interpretation.
+- The receiving-room background, daylight, camera, and dialogue UI remain continuous. Heraldic animal emblems were removed from the textile panels.
+- Status: **non-canon in-game mockup**. Not connected to Unity runtime; no story or Ink text changed.
+
+
+## Mockup 18 — Fixed-Background Dialogue Sequence v1
+
+Directory: `MVP/development/mockups/Dialogue/FixedBackgroundSequence_v1/`
+
+- `royal_reception_day_background_master_v1.png` is the immutable background plate.
+- Frames 01–06 are raster composites built from that exact file; the room is not regenerated per speaker.
+- Sequence: Rian right → Seran left → Valen right → Rian left → opinion summary → opinions slide upward and king decision cards appear below.
+- Frame 06 uses action-level choices without scripting the king's spoken words.
+- Background furniture, windows, light, banners, sealed letter, perspective, and camera remain pixel-identical across all frames.
+- Status: **non-canon UI/composition mockup**. Not connected to Unity runtime; no story or Ink text changed.
+
+The earlier individually generated dialogue screenshots remain references but are superseded for continuity because their background geometry drifted between frames.
