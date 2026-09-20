@@ -30,7 +30,9 @@ public class StoryController : MonoBehaviour
     };
     const string DefaultSpeakerColor = "#CFCFCF";
     static readonly Regex SpeakerLine = new Regex(@"^([가-힣A-Za-z][가-힣A-Za-z ]{0,10}):\s*(.*)$");
-    static readonly Regex EventPathNumber = new Regex(@"event_(\d+)");
+    static readonly Regex EventPathNumber = new Regex(@"^event_(\d+)");
+    // 루트 이름 knot(north_04, west_02, home_tax ...)의 사건 경계를 잡기 위한 knot 이름 추출.
+    static readonly Regex KnotName = new Regex(@"^([A-Za-z_][A-Za-z0-9_]*)");
 
     Story story;
     Text storyText;
@@ -40,7 +42,8 @@ public class StoryController : MonoBehaviour
     ScrollRect scrollRect;
     Button advanceCatcher;
     Coroutine moodCoroutine;
-    int lastActEventNum = -1;
+    int lastActIndex = -1;
+    string lastKnot;
     GameHud hud;
     TempScreens screens;
     CourtRoster roster;
@@ -412,8 +415,10 @@ public class StoryController : MonoBehaviour
         hud.Seats.ClearGuests();
         story.ResetState();
         hud.ClearRecords();
-        lastActEventNum = -1;
+        lastActIndex = -1;
         lastEventPath = null;
+        lastKnot = null;
+        lastEventKnot = null;
         hud.SetTitle(null);
         AdvanceStory();
     }
@@ -461,41 +466,63 @@ public class StoryController : MonoBehaviour
         }
     }
 
-    string lastEventPath;
+    string lastEventPath;   // event_NN 형태만 — 레거시 ACT 번호 추출용
+    string lastEventKnot;   // UpdateActMood가 마지막으로 처리한 사건 knot
 
-    // currentPathString은 선택지 대기 시점에 자주 비어 있다. Continue() 직후의 현재/직전 포인터에서 event_NN을 계속 모아둔다.
+    // currentPathString은 선택지 대기 시점에 자주 비어 있다. Continue() 직후의 현재/직전 포인터에서 계속 모아둔다.
     void CaptureEventPath()
     {
         var candidates = new[] { story.state.currentPathString, story.state.previousPointer.isNull ? null : story.state.previousPointer.path.ToString() };
         foreach (var c in candidates)
         {
-            if (!string.IsNullOrEmpty(c) && EventPathNumber.IsMatch(c)) lastEventPath = c;
+            if (string.IsNullOrEmpty(c)) continue;
+            var knot = KnotName.Match(c);
+            if (knot.Success) lastKnot = knot.Groups[1].Value; // 이름 knot 포함 — 사건 경계 판정용
+            if (EventPathNumber.IsMatch(c)) lastEventPath = c;
         }
+    }
+
+    // ACT 선택 우선순위: (1) `# act: N` 태그 (2) 경로의 event_NN 번호 (3) 직전 ACT 유지.
+    // 루트 이름 knot(north_04 등)은 번호가 없으므로 (1)이 유일한 경로다. 기존 event_NN 사건은
+    // 태그 없이 (2)로 계속 동작하므로 29개를 고칠 필요가 없다.
+    int ResolveActIndex()
+    {
+        for (int i = 0; i < pendingLines.Count; i++)
+        {
+            if (pendingLines[i].tags.TryGetValue("act", out var s)
+                && int.TryParse(s.Trim(), out var n)
+                && n >= 1 && n <= catalog.acts.Count)
+            {
+                return n - 1;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(lastEventPath))
+        {
+            var match = EventPathNumber.Match(lastEventPath);
+            if (match.Success) return catalog.ActIndexOf(int.Parse(match.Groups[1].Value));
+        }
+        return -1;
     }
 
     void UpdateActMood()
     {
-        var path = lastEventPath;
-        if (string.IsNullOrEmpty(path))
+        var actIndex = ResolveActIndex();
+
+        // 사건 경계는 knot 이름으로 잡는다. ACT가 그대로여도 새 사건이면 제목은 지워야 한다.
+        if (!string.IsNullOrEmpty(lastKnot) && lastKnot != lastEventKnot)
         {
-            return;
+            lastEventKnot = lastKnot;
+            hud.SetTitle(null); // 새 사건: 이전 제목을 지운다(제목 태그가 있으면 그 줄에서 다시 표시)
+            if (actIndex < 0)
+            {
+                Debug.LogWarning($"[ActMood] knot '{lastKnot}'의 ACT를 정할 수 없어 직전 ACT를 유지합니다. 사건 첫 줄에 '# act: N'을 붙이세요.");
+            }
         }
 
-        var match = EventPathNumber.Match(path);
-        if (!match.Success)
-        {
-            return;
-        }
-
-        var eventNum = int.Parse(match.Groups[1].Value);
-        if (eventNum == lastActEventNum)
-        {
-            return;
-        }
-        lastActEventNum = eventNum;
-        var actIndex = catalog.ActIndexOf(eventNum);
+        if (actIndex < 0 || actIndex == lastActIndex) return;
+        lastActIndex = actIndex;
         var act = catalog.acts[actIndex];
-        hud.SetTitle(null); // 새 사건: 이전 제목을 지운다(제목 태그가 있으면 그 줄에서 다시 표시)
 
         if (moodCoroutine != null)
         {
