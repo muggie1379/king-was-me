@@ -1271,6 +1271,7 @@ KING WAS ME
 우리 쪽 초소가 먼저 막았고, 북부 초소도 같은 날 사람을 물렸다.
 { valen_introduced: 발렌: 잘한 일입니다. 통제 밖이었습니다. }
 { rian_introduced: 리안: 양쪽이 같은 날 같은 판단을 했습니다. 그것도 일종의 신호입니다. }
+{ rian_introduced && northContact <= 0: 리안: 저쪽에서 답이 올 자리는 아직 비어 있습니다. 채울지 말지는 우리가 정합니다. }
 + [현재 방침을 유지한다]
     ~ last_family = "hard"
     ~ selfProtection += 1
@@ -1379,6 +1380,8 @@ KING WAS ME
 침범은 없다. 늘어난 규모도 크지 않다. 다만 우리가 기다리던 것은 이것이 아니었다.
 { valen_introduced: 발렌: 답은 이미 온 겁니다. 이게 답입니다. }
 { rian_introduced: 리안: 병력과 답신은 다른 사람이 정합니다. }
+{ rian_introduced && northContact <= 1: 리안: 우리가 몇 통을 보냈는지는 기록에 남습니다. 답이 없었다는 것도 남고요. }
+{ karden_introduced && northContact <= 1: 카르덴: 저쪽에 사람을 덜 쓴 만큼 이쪽은 돌아갑니다. }
 + [문의 서신을 보낸다]
     { consistent("careful"):
         ~ northContact += 2
@@ -1508,6 +1511,9 @@ KING WAS ME
 왕래를 늘리는 조항은 없다. 서로 어디까지 오지 않을지만 적혀 있다.
 { valen_introduced: 발렌: 이게 제일 깔끔합니다. }
 { seran_introduced: 세르안: 다투지 않기로 한 것과 가까워지는 것은 다릅니다. 우리는 앞쪽을 골랐습니다. }
+// 같은 결말을 대신마다 다르게 읽는다. 어느 쪽도 왕을 평가하지 않는다(DESIGN_INTENT §A).
+{ rian_introduced: 리안: 선을 긋는 것도 관계입니다. 다만 이 선 안쪽에서는 더 볼 일이 없겠지요. }
+{ karden_introduced: 카르덴: 국경 쪽에 나가던 사람이 돌아옵니다. 밀린 안건부터 봅니다. }
 + [문서대로 확정한다]
     ~ north_form = "frozen"
     ~ treasury -= 1
