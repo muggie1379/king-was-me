@@ -91,6 +91,7 @@ VAR leave_seen = false
 VAR illness_seen = false
 VAR return_seen = false
 VAR inward_seen = false
+VAR levy_seen = false
 VAR backlog_seen = false
 
 // ── 1층: 선택 이력 ──
@@ -1174,6 +1175,9 @@ KING WAS ME
 // ║  내정 — 조건부 사건 배차                                                 ║
 // ║  외교의 결과가 자원으로 쌓이고, 자원이 밴드를 넘으면 여기서 올라온다.     ║
 // ║  D14(밖에 쓴 만큼 안이 밀린다) / D15(외교 선택의 물질적 결과)            ║
+// ║  ★ 조건은 잔고만 보지 않는다. `spent`(밖에 쓴 총량)도 같이 본다.         ║
+// ║    국고가 남아 있어도 밖에 벌여 놓은 일이 많으면 예산이 안 맞는다.        ║
+// ║    잔고만 보면 여러 관계를 다 챙긴 왕이 아무 값도 치르지 않는다(실측).    ║
 // ║  / D16(국고를 채우는 길은 민심을 쓰는 것뿐).                             ║
 // ║                                                                        ║
 // ║  ★ 벌점이 아니다. 미뤄둔 일이 실제로 쌓이는 것이다(절대원칙 #6).         ║
@@ -1187,8 +1191,18 @@ KING WAS ME
 
 === domestic_check ===
 -> clamp_state ->
+// 틱 대용(임시). 정식 틱 시스템 전까지 배차 지점마다 인력이 조금씩 돌아온다.
+// 회차당 4회 호출되므로 총 +4. 북부+남부를 다 챙기면 소모가 이를 앞질러
+// 인력이 바닥나지만 0에서 멈추지는 않는다 — 대가가 민심으로 넘어가게 하는 장치다.
+~ labor += 1
+-> clamp_state ->
 // 급한 것부터 본다. 하나가 올라오면 그 자리에서 돌아간다.
-{ treasury <= 4 && not tax_seen:
+// 밖에 계속 쓰려는데 국고가 바닥이면 징발이 먼저 올라온다.
+{ (treasury <= 3 || spent >= 8) && spent >= 3 && not levy_seen:
+    -> home_levy ->
+    ->->
+}
+{ (treasury <= 4 || spent >= 6) && not tax_seen:
     -> home_tax ->
     ->->
 }
@@ -1200,7 +1214,7 @@ KING WAS ME
     -> home_arrears ->
     ->->
 }
-{ labor <= 4 && not illness_seen:
+{ (labor <= 4 || spent >= 7) && not illness_seen:
     -> home_illness ->
     ->->
 }
@@ -1401,6 +1415,45 @@ KING WAS ME
     ~ caution += 1
     ~ last_family = "careful"
     아무 데도 쓰지 않았다. 장부에는 여유분이 그대로 적혀 있다.
+    ->->
+
+=== home_levy ===
+~ levy_seen = true
+// [내정] 징발
+// │ 장면: 다음 사절 의전과 호위에 쓸 인력·물자를 어디서 뺄지 정해야 한다.
+// │ 영향: ★ 국고가 바닥인데 밖에 계속 쓰려 할 때만 온다.
+// │        여기서부터 값이 인력에서 민심으로 넘어간다.
+// │ 은유: 밖에 쓴 것은 결국 안에서 빠져나온 것이다.
+// └ 상태: treasury <= 3 && spent >= 3. 회차당 1회
+다음 사절 준비 명세가 올라왔다. 국고에서 댈 수 있는 몫이 모자란다. # title: 징발
+어디서 뺄지는 정해져 있지 않다. 어디서 빼든 누군가는 덜 받는다.
+{ karden_introduced: 카르덴: 밖에 쓰기로 하신 만큼이 여기서 나갑니다. 그 순서입니다. }
+{ rian_introduced: 리안: 안 보내는 것도 선택지에 넣어 두셔야 합니다. }
++ [변경에서 징발한다]
+    ~ treasury += 2
+    ~ labor -= 2
+    ~ morale -= 1
+    ~ last_family = "hard"
+    수레와 사람이 국경 쪽에서 왔다. 공고문에는 기한만 적혀 있다.
+    ->->
++ [도성에서 고르게 징발한다]
+    ~ treasury += 2
+    ~ labor -= 1
+    ~ morale -= 2
+    ~ last_family = "hard"
+    도성 각 구역에 할당이 내려갔다. 그날 저녁 시장이 일찍 닫혔다.
+    ->->
++ [의전 규모를 줄인다]
+    ~ treasury += 1
+    ~ spent -= 1
+    ~ last_family = "careful"
+    수행 인원이 절반이 됐다. 사절단은 예정대로 떠났다.
+    ->->
++ [이번 사절은 보내지 않는다]
+    ~ spent -= 2
+    ~ caution += 1
+    ~ last_family = "careful"
+    파견이 취소됐다. 국고도 사람도 그대로 남았다. 저쪽에는 알리지 않았다.
     ->->
 
 // ╔════════════════════════════════════════════════════════════════════════╗
@@ -2002,7 +2055,10 @@ KING WAS ME
 // ╔════════════════════════════════════════════════════════════════════════╗
 // ║  북부 루트 — 적대로 열고, 우리가 가야만 천천히 녹는다                   ║
 // ║  사용자 방향(2026-09-20). 구조·수치는 NUMBERS_LEDGER §C·§D (비캐논).     ║
-// ║  관문 northContact 2/4/6. 일관된 행동 +2, 어긋난 행동 +1, 강경 -4.       ║
+// ║  관문 northContact 1/3/5. 일관된 행동 +2, 어긋난 행동 +1, 강경 -4.       ║
+// ║  관문을 2/4/6에서 낮췄다(2026-09-21). 전에는 접촉 3회가 전부 +2여야 해서  ║
+// ║  남부·서부에서 적극 선택 한 번이면 온기 루트가 닫혔다(양쪽 최상 1.6%).    ║
+// ║  이제 어긋남 한 번은 허용한다 — "둘 다 얻되 값을 치른다"가 성립하도록.    ║
 // ║  ⚠ 루트 이름 knot이므로 본문 줄 끝의 `# act: N` 태그가 ACT를 정한다.     ║
 // ╚════════════════════════════════════════════════════════════════════════╝
 
@@ -2058,7 +2114,7 @@ KING WAS ME
 === north_04 ===
 // 라우터: 접촉이 쌓였고 강경 노선이 아닐 때만 장터가 열린다
 -> clamp_state ->
-{ northContact >= 2 && not north_hardline:
+{ northContact >= 1 && not north_hardline:
     -> north_04_market
 - else:
     -> north_04_closed
@@ -2168,7 +2224,7 @@ KING WAS ME
 === north_06 ===
 // 라우터: 접촉이 더 쌓였을 때만 답이 온다
 -> clamp_state ->
-{ northContact >= 4:
+{ northContact >= 3:
     -> north_06_reply
 - else:
     -> north_06_instead
@@ -2322,7 +2378,7 @@ KING WAS ME
 === north_08 ===
 // 라우터: 형태 확정. 쌓인 접촉과 남은 긴장을 함께 본다
 -> clamp_state ->
-{ northContact >= 6 && northTension <= 2:
+{ northContact >= 5 && northTension <= 2:
     -> north_08_line
 - else:
     -> north_08_frozen
