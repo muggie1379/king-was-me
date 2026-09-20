@@ -72,6 +72,12 @@ VAR east_form = "open"         // 동부 관계의 최종 형태: open | formal 
 // 일관된 행동은 +2, 습관과 어긋난 행동은 +1 — 정수 유지를 위해 원안(+1, 관문 1/2/3)을 2배로 옮겼다.
 VAR northContact = 0
 VAR north_form = "wary"        // quiet_trust | wary | frozen
+
+// ── 남부 (D13 적극형) ──
+// 응하면 다음 제안이 커지고, 미루면 다른 상대를 찾는다. 둘 다 값을 치른다.
+VAR south_pressure = 0         // 우리가 응해 온 정도. 오를수록 요구가 커진다
+VAR south_elsewhere = 0        // 남부가 다른 상대를 본 횟수. 미루면 오른다
+VAR south_form = "contract"    // partner | contract | slowed
 VAR backlog_seen = false
 
 // ── 1층: 선택 이력 ──
@@ -288,14 +294,14 @@ VAR morale = 7
 { not rian_introduced: 세르안: 기존 조약 위반 통보가 아니라 재협상 요청입니다. }
 + [조건을 수용한다]
     ~ southLeverage += 1
-    -> event_06
-+ [절충안을 제시한다] -> event_06
+    -> south_02
++ [절충안을 제시한다] -> south_02
 + [원안을 고수한다]
     ~ south_hardline = true
-    -> event_06 // Strong Choice — E14/E19 분기 결정
+    -> south_02 // Strong Choice — E14/E19 분기 결정
 + [재협상을 연기한다]
     ~ southLeverage -= 1
-    -> event_06
+    -> south_02
 
 === event_06 ===
 ~ rian_introduced = true
@@ -610,12 +616,12 @@ VAR morale = 7
 { seran_introduced: 세르안: 감정과 계산은 분리해야 합니다. }
 + [손해를 감수하고 수용한다]
     ~ south_sacrifice = true
-    -> event_15
-+ [절충안을 재요청한다] -> event_15
+    -> south_04
++ [절충안을 재요청한다] -> south_04
 + [거절하고 관계 냉각을 감수한다]
     ~ southLeverage -= 1
-    -> event_15
-+ [시간을 벌며 재검토한다] -> event_15
+    -> south_04
++ [시간을 벌며 재검토한다] -> south_04
 
 === event_14_broken ===
 // [남부] 협상 결렬 (Strong Branch 변형, E05 south_hardline=true)
@@ -626,9 +632,9 @@ VAR morale = 7
 남부가 조건 제시 없이 협상 자체를 접겠다고 통보한다. 대안 무역로 이용 정황이 보인다.
 { karden_introduced: 카르덴: 이번엔 손해를 볼 기회조차 없습니다. }
 { rian_introduced: 리안: 지난번 선택의 대가입니다. 지금 할 수 있는 건 다음을 준비하는 것뿐입니다. }
-+ [대안 무역로를 알아본다] -> event_15
-+ [남부에 재협상을 공식 요청한다] -> event_15
-+ [그대로 받아들인다] -> event_15
++ [대안 무역로를 알아본다] -> south_04
++ [남부에 재협상을 공식 요청한다] -> south_04
++ [그대로 받아들인다] -> south_04
 
 === event_15 ===
 // 라우터: E13 pause_contact에 따라 분기
@@ -770,15 +776,15 @@ VAR morale = 7
     카르덴: 동부 쪽은 손이 많이 가지 않았습니다. 그런데도 남부 수로 공사는 아직 첫 회의가 끝나지 않았습니다.
 }
 { south_sacrifice && karden_introduced: 카르덴: 그래도 관계는 유지되고 있습니다. }
-+ [지금 바로 남부 회의를 연다] -> event_20
-+ [담당자에게 위임한다] -> event_20
-+ [동부 문제 정리 후로 미룬다] -> event_20
-+ [남부에 지연을 알리고 양해를 구한다] -> event_20
++ [지금 바로 남부 회의를 연다] -> south_06
++ [담당자에게 위임한다] -> south_06
++ [동부 문제 정리 후로 미룬다] -> south_06
++ [남부에 지연을 알리고 양해를 구한다] -> south_06
 
 === bridge_broken_trade ===
 // 브리지 — 끊어진 상단 (E19 스킵 대체, 선택 없음)
 남부 상단은 발길을 끊었다. 수로 공사 이야기도 더 나오지 않는다.
--> event_20
+-> south_06
 
 === event_20 ===
 // 라우터: E17 royal_visit에 따라 분기
@@ -1038,10 +1044,10 @@ VAR morale = 7
 { north_incident_occurred: 북부 국경, 그 뒤로는 조용하다. }
 { not north_incident_occurred: 북부는 원래도 별일 없었다. }
 해안 도시의 축제가 다시 눈에 들어온다.
-+ [내정 우선] -> event_27
-+ [다른 외교 재개] -> event_27
-+ [휴식/정비] -> event_27
-+ [동부 최소 업무 유지] -> event_27
++ [내정 우선] -> south_08
++ [다른 외교 재개] -> south_08
++ [휴식/정비] -> south_08
++ [동부 최소 업무 유지] -> south_08
 
 === event_27 ===
 ~ chaplain_introduced = true
@@ -1141,6 +1147,252 @@ KING WAS YOU
 KING WAS ME
 -> END
 
+
+// ╔════════════════════════════════════════════════════════════════════════╗
+// ║  남부 루트 — 먼저 오고, 기다려주지 않는다                               ║
+// ║  D13 적극형. 응하면 다음 제안이 커지고(south_pressure),                  ║
+// ║  미루면 다른 상대를 찾는다(south_elsewhere). 둘 다 값을 치른다.          ║
+// ║  관계 방식은 북부(이어받기)와 다르게 간다 — 충돌 / 공명.                 ║
+// ║  ⚠ 루트 이름 knot이므로 본문 줄 끝의 `# act: N`이 ACT를 정한다.          ║
+// ╚════════════════════════════════════════════════════════════════════════╝
+
+=== south_02 ===
+// [남부] 더 큰 제안
+// │ 장면: 수로 협력이 끝나기도 전에 항만 공동 운영까지 제안해 온다.
+// │ 영향: south_pressure(응할수록 다음이 커진다) / south_elsewhere(미루면 떠난다).
+// │ 은유: 상대의 속도가 내 속도보다 빠를 때. 반가움과 부담이 같이 온다.
+// └ 상태: 남부 1번 칸. 관계 방식 = 충돌(세르안 ↔ 발렌)
+남부 상단이 다시 왔다. 수로 공사는 아직 첫 구간도 끝나지 않았다. # act: 2 # title: 더 큰 제안
+이번에는 항만을 함께 운영하자는 제안이다. 조건은 나쁘지 않다. 다만 우리 쪽에서 붙일 사람이 모자란다.
+{ valen_introduced: 발렌: 먼저 오는 쪽을 돌려보내면 다음엔 안 옵니다. }
+{ seran_introduced: 세르안: 지금 우리가 댈 수 있는 인원이 몇인지부터 세야 합니다. }
++ [항만까지 전부 받는다]
+    ~ south_pressure += 1
+    ~ southLeverage += 1
+    ~ labor -= 2
+    ~ spent += 1
+    ~ initiative += 1
+    ~ last_family = "active"
+    합의서가 두 장으로 늘었다. 수로 인부 일부가 항만 쪽으로 옮겨 갔다.
+    -> event_06
++ [수로부터 끝내고 항만은 다음에 보자고 한다]
+    ~ labor -= 1
+    ~ spent += 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    남부는 알겠다고 했다. 다만 항만 이야기를 다시 꺼내지는 않았다.
+    -> event_06
++ [우리 쪽 조건을 걸어 받는다]
+    ~ south_pressure += 1
+    ~ southLeverage -= 1
+    ~ labor -= 1
+    ~ spent += 1
+    ~ reciprocity += 1
+    ~ last_family = "careful"
+    조항이 세 줄 붙었다. 남부 대표는 그 자리에서 읽고 서명했다. 표정은 읽히지 않았다.
+    -> event_06
++ [지금은 어렵다고 답한다]
+    ~ south_elsewhere += 1
+    ~ southLeverage -= 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    남부 상단은 예를 갖춰 물러났다. 다음 장에는 오지 않았다.
+    -> event_06
+
+=== south_04 ===
+-> clamp_state ->
+// 라우터: 우리가 응해 왔는지에 따라 요구의 모양이 달라진다
+{ south_pressure >= 1:
+    -> south_04_advance
+- else:
+    -> south_04_quiet
+}
+
+=== south_04_advance ===
+// [남부] 선불 요구
+// │ 장면: 다음 계약의 선금을 요구한다. 조건 자체는 나쁘지 않다.
+// │ 영향: treasury 직접 감소. 응해 온 왕에게만 오는 청구서다.
+// │ 은유: 지금 여유가 없는데 상대는 지금을 원한다.
+// └ 상태: south_pressure >= 1. 관계 방식 = 충돌(리안 ↔ 카르덴)
+남부가 다음 계약의 선금을 요구한다. 관례라고 한다. # act: 3 # title: 선불 요구
+액수는 크지 않다. 다만 지금 국고에서 빼기에는 시점이 좋지 않다.
+// 북부에서는 이 둘이 서로를 향해 말하지 않았다. 여기서는 정면으로 부딪힌다.
+{ rian_introduced && karden_introduced:
+    리안: 선금은 신뢰의 표시로 오가는 겁니다. 여기서 깎으면 그것도 같이 전달됩니다.
+    카르덴: 신뢰는 국고에서 나갑니다. 이번 달에만 세 번째입니다.
+    리안: 세 번 다 다른 나라였습니다. 같은 셈으로 묶으면 안 됩니다.
+}
++ [요구대로 지불한다]
+    ~ treasury -= 3
+    ~ south_pressure += 1
+    ~ spent += 1
+    ~ reciprocity += 1
+    ~ last_family = "active"
+    선금이 나갔다. 계약서 날짜가 한 달 앞당겨졌다.
+    -> event_15
++ [절반만 먼저 보낸다]
+    ~ treasury -= 1
+    ~ southLeverage -= 1
+    ~ spent += 1
+    ~ last_family = "careful"
+    절반이 나갔다. 남부는 받았다고만 회신했다. 날짜는 그대로다.
+    -> event_15
++ [선금 대신 물자로 대신하겠다고 제안한다]
+    ~ labor -= 1
+    ~ grain -= 1
+    ~ spent += 1
+    ~ uncertainty -= 1
+    ~ last_family = "careful"
+    곡물과 목재가 실려 나갔다. 셈은 맞지만 창고는 비었다.
+    -> event_15
++ [관례가 아니라고 답한다]
+    ~ south_elsewhere += 1
+    ~ southLeverage += 1
+    ~ selfProtection += 1
+    ~ last_family = "hard"
+    우리 쪽 기록에는 그런 관례가 없다고 회신했다. 남부는 더 묻지 않았다.
+    -> event_15
+
+=== south_04_quiet ===
+// [남부] 줄어든 왕래 (변형)
+// │ 장면: 미뤄 온 왕에게는 요구가 오지 않는다. 대신 배가 줄었다.
+// │ 영향: 벌점이 아니다 — 남부 쪽 사정이다. 왕래가 준 것이 관찰된다.
+// │ 은유: 먼저 오던 사람이 덜 오게 되는 일. 다툰 적은 없다.
+// └ 상태: south_pressure == 0
+남부 상단의 입항 기록을 정리하던 서기관이 숫자 하나를 짚는다. # act: 3 # title: 줄어든 왕래
+지난 분기보다 배가 적게 들어왔다. 항의도 통보도 없었다. 그냥 적게 왔다.
+{ karden_introduced: 카르덴: 나쁜 소식은 아닙니다. 항구 쪽 인력이 남습니다. }
+{ rian_introduced: 리안: 끊긴 건 아닙니다. 다만 우리가 먼저 청하지 않으면 이대로 갑니다. }
++ [남부에 다음 안건을 먼저 보낸다]
+    ~ south_elsewhere -= 1
+    ~ spent += 1
+    ~ labor -= 1
+    ~ initiative += 1
+    ~ last_family = "active"
+    우리 쪽에서 먼저 서신이 갔다. 회신은 빨랐다. 반가워하는 기색이 있었다.
+    -> event_15
++ [입항 기록만 계속 받아 둔다]
+    ~ caution += 1
+    ~ last_family = "careful"
+    숫자는 계속 올라온다. 분기마다 조금씩 줄어든다.
+    -> event_15
++ [남는 인력을 국경 쪽으로 돌린다]
+    ~ labor += 1
+    ~ south_elsewhere += 1
+    ~ last_family = "careful"
+    항구에 있던 사람 일부가 다른 일로 갔다. 남부 배가 다시 늘면 다시 부르면 된다.
+    -> event_15
+
+=== south_06 ===
+-> clamp_state ->
+// 라우터: 미뤄 온 정도에 따라 같은 사실이 다르게 도착한다
+{ south_elsewhere >= 2:
+    -> south_06_left
+- else:
+    -> south_06_shared
+}
+
+=== south_06_shared ===
+// [남부] 같은 조건, 다른 이름
+// │ 장면: 남부가 서부와도 같은 조건으로 거래한다는 것이 확인된다.
+// │ 영향: 배신이 아니다. 우리만의 관계가 아니었다는 사실일 뿐.
+// │ 은유: 나만의 관계가 아니라는 걸 알게 되는 순간.
+// └ 상태: south_elsewhere < 2. 관계 방식 = 공명(카르덴 + 베이라)
+남부 상단이 서부와도 같은 조건으로 계약했다는 사실이 확인된다. # act: 4 # title: 같은 조건, 다른 이름
+숨긴 적은 없다. 우리가 묻지 않았을 뿐이다. 조항은 글자까지 같다.
+{ valen_introduced: 발렌: 우리 조건이 특별한 게 아니었다는 뜻입니다. }
+// 공명 — 둘이 같은 방향으로 기울면 왕국은 아무것도 받지 않게 된다.
+{ karden_introduced && watcher_introduced:
+    카르덴: 이쪽만 무리해서 맞춰 온 셈입니다.
+    {name_watcher}: 서부와 남부가 같은 문서를 들고 있다면, 두 나라가 우리 사정을 같이 보고 있을 수도 있습니다.
+    카르덴: 그러면 다음 조건은 더 나빠집니다.
+}
+{ rian_introduced: 리안: 같은 조건을 두 곳에 준 것과 우리를 속인 것은 다릅니다. }
++ [우리 쪽 조건을 다시 협상한다]
+    ~ southLeverage += 1
+    ~ spent += 1
+    ~ selfProtection += 1
+    ~ last_family = "hard"
+    재협상 요청이 갔다. 남부는 놀라지 않았다. 올 것이 왔다는 반응에 가까웠다.
+    -> event_20
++ [서부와 남부를 한 자리에 부른다]
+    ~ spent += 2
+    ~ treasury -= 1
+    ~ initiative += 1
+    ~ last_family = "active"
+    두 나라 대표가 같은 탁자에 앉았다. 서로 아는 사이였다.
+    -> event_20
++ [알고도 그대로 간다]
+    ~ reciprocity += 1
+    ~ last_family = "careful"
+    계약은 그대로 굴러간다. 다만 이쪽 기록에 한 줄이 더 적혔다.
+    -> event_20
+
+=== south_06_left ===
+// [남부] 이미 정해진 자리
+// │ 장면: 남부가 다른 항구와 장기 계약을 맺었다는 통보가 온다.
+// │ 영향: 미뤄 온 결과가 사실로 도착한다. 처벌이 아니라 상대의 선택이다.
+// │ 은유: 기다려주지 않는 사람. 화내지도 않고 그냥 다른 데로 간다.
+// └ 상태: south_elsewhere >= 2
+남부 상단이 다른 항구와 장기 계약을 맺었다는 통보가 왔다. # act: 4 # title: 이미 정해진 자리
+통보는 정중하다. 우리와의 기존 계약은 그대로 지킨다고 적혀 있다. 새 건은 없다.
+{ valen_introduced: 발렌: 통보라도 해 준 게 어딥니까. }
+{ rian_introduced: 리안: 마지막 서신에 답을 달라는 말이 있었습니다. 우리가 답한 날짜가 그 뒤입니다. }
+{ karden_introduced: 카르덴: 그쪽도 배를 놀릴 수는 없었을 겁니다. }
++ [남은 계약이라도 성실히 이행한다]
+    ~ southLeverage += 1
+    ~ labor -= 1
+    ~ reciprocity += 1
+    ~ last_family = "careful"
+    남은 구간은 예정대로 끝났다. 인수인계 자리에서 남부 대표가 다음에 보자고 했다.
+    -> event_20
++ [새 조건을 제시해 되돌려 본다]
+    ~ treasury -= 2
+    ~ spent += 2
+    ~ initiative += 1
+    ~ last_family = "active"
+    더 나은 조건을 보냈다. 남부는 검토하겠다고만 했다. 기한은 적지 않았다.
+    -> event_20
++ [다른 상단을 알아본다]
+    ~ south_elsewhere += 1
+    ~ spent += 1
+    ~ selfProtection += 1
+    ~ last_family = "hard"
+    해안 쪽 상단 두 곳과 접촉했다. 조건은 남부만 못하다.
+    -> event_20
+
+=== south_08 ===
+-> clamp_state ->
+// [남부] 속도 이야기 — south_form 확정
+// │ 장면: 남부가 다음 제안을 들고 온다. 이번엔 우리가 고를 수 있다.
+// │ 영향: south_form = partner | contract | slowed. 어느 쪽도 실패가 아니다(D18).
+// │ 은유: 상대를 끊지 않으면서 내 속도를 말하는 법.
+// └ 상태: 남부 마지막 칸
+남부 상단이 다음 계절의 제안을 들고 왔다. # act: 5 # title: 속도 이야기
+이번에는 우리가 먼저 읽고 정할 시간이 있다.
+{ south_pressure >= 2 && karden_introduced: 카르덴: 지난 세 번 다 맞춰 드렸습니다. 이번에도 그러면 겨울에 사람이 없습니다. }
+{ south_elsewhere >= 2 && rian_introduced: 리안: 저쪽은 이제 우리를 첫 번째로 두지 않습니다. 그건 우리가 정한 결과입니다. }
++ [이번에도 상대 일정에 맞춘다]
+    ~ south_form = "partner"
+    ~ south_pressure += 1
+    ~ labor -= 1
+    ~ spent += 1
+    ~ last_family = "active"
+    일정이 남부 쪽 달력에 맞춰졌다. 우리 쪽 담당자가 한 명 더 붙었다.
+    -> event_27
++ [함께 가되 우리 속도를 적어 보낸다]
+    ~ south_form = "slowed"
+    ~ spent += 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    회신에 우리 쪽 일정이 함께 적혔다. 남부는 두 줄을 고쳐 다시 보냈다.
+    -> event_27
++ [계약 범위만 유지한다]
+    ~ south_form = "contract"
+    ~ southLeverage += 1
+    ~ last_family = "careful"
+    기존 조항만 연장됐다. 새 항목은 붙지 않았다.
+    -> event_27
 
 // ╔════════════════════════════════════════════════════════════════════════╗
 // ║  북부 루트 — 적대로 열고, 우리가 가야만 천천히 녹는다                   ║
