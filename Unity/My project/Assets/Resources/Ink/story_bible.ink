@@ -94,6 +94,12 @@ VAR inward_seen = false
 VAR levy_seen = false
 VAR festival_count = 0
 VAR festival_held = 0
+
+// ── 교차 사건 ──
+VAR same_day_seen = false
+VAR leak_seen = false
+VAR side_seen = false
+VAR overlap_seen = false
 VAR backlog_seen = false
 
 // ── 1층: 선택 이력 ──
@@ -850,6 +856,7 @@ VAR morale = 7
 
 === domestic_gate_act4 ===
 -> domestic_check ->
+-> cross_check ->
 -> event_21
 
 === event_21 ===
@@ -1071,6 +1078,7 @@ VAR morale = 7
 
 === domestic_gate_act5 ===
 -> domestic_check ->
+-> cross_check ->
 -> festival ->
 -> coast_04 ->
 -> event_27
@@ -1460,6 +1468,205 @@ KING WAS ME
     ->->
 
 // ╔════════════════════════════════════════════════════════════════════════╗
+// ║  교차 — 여러 관계를 동시에 굴릴 때                                       ║
+// ║  한 나라와의 선택이 다른 나라에서 값을 치르게 한다.                      ║
+// ║  ★ 두 개 이상의 루트가 일정 이상 진행됐을 때만 뜬다. 조건부다.           ║
+// ║  ★ 어느 쪽도 잘못하지 않았는데 부딪힌다 — 그게 이 칸의 은유다.           ║
+// ║  ★ 중반이 비어 있어서 넣는 것이다. 기존 E26·E29는 후반 회수용뿐이었다.   ║
+// ╚════════════════════════════════════════════════════════════════════════╝
+
+=== cross_check ===
+-> clamp_state ->
+// 급한 것부터. 하나 올라오면 그 자리에서 돌아간다.
+{ spent >= 5 && not same_day_seen:
+    -> cross_same_day ->
+    ->->
+}
+{ west_debt >= 1 && southLeverage >= 5 && not leak_seen:
+    -> cross_leak ->
+    ->->
+}
+{ northTension >= 4 && southLeverage >= 5 && not side_seen:
+    -> cross_side ->
+    ->->
+}
+{ treasury <= 5 && spent >= 6 && not overlap_seen:
+    -> cross_overlap ->
+    ->->
+}
+->->
+
+// ─────────────────────────────────────────────────────────────────────────
+
+=== cross_same_day ===
+~ same_day_seen = true
+// [교차] 같은 날 도착
+// │ 장면: 두 나라 사절이 같은 날 도착한다. 먼저 만날 쪽을 정해야 한다.
+// │ 영향: 뒤로 밀린 쪽이 그것을 기억한다. 미루면 양쪽 다.
+// │ 은유: 둘 다 중요한데 몸은 하나일 때. 순서가 곧 메시지가 된다.
+// └ 상태: spent >= 5. 회차당 1회
+사절 둘이 같은 날 도착했다. 서로 다른 나라에서 왔고, 둘 다 예고된 일정이다. # title: 같은 날 도착
+접견실은 하나다. 누구를 먼저 볼지 정해야 한다.
+{ karden_introduced: 카르덴: 두 분 다 오늘 안에 뵙습니다. 순서만 정하시면 됩니다. }
+{ rian_introduced: 리안: 순서는 기록에 남습니다. 양쪽 기록관이 각자 적을 겁니다. }
++ [남부 사절을 먼저 본다]
+    ~ southLeverage += 1
+    ~ westWarmth -= 1
+    ~ spent += 1
+    ~ last_family = "active"
+    남부 대표가 먼저 들어왔다. 서부 사절은 복도에서 한 시간을 기다렸다.
+    ->->
++ [서부 사절을 먼저 본다]
+    ~ westWarmth += 1
+    ~ southLeverage -= 1
+    ~ spent += 1
+    ~ last_family = "active"
+    서부 사절이 먼저 들어왔다. 남부 대표는 기다리는 동안 장부를 읽었다.
+    ->->
++ [같은 자리에 함께 부른다]
+    ~ spent += 2
+    ~ uncertainty -= 1
+    ~ initiative += 1
+    ~ last_family = "active"
+    둘을 한자리에 앉혔다. 각자 할 말을 줄였고, 회담은 예정보다 짧게 끝났다.
+    { seran_introduced: 세르안: 두 분 다 하려던 말을 다 하지 못했습니다. }
+    ->->
++ [둘 다 내일로 미룬다]
+    ~ southLeverage -= 1
+    ~ westWarmth -= 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    양쪽에 같은 내용의 서신이 갔다. 내일 오전과 오후로 나뉘어 잡혔다.
+    ->->
+
+=== cross_leak ===
+~ leak_seen = true
+// [교차] 새어 나간 조건
+// │ 장면: 한 나라에 준 조건이 다른 나라에 알려진다. 숨긴 적은 없다.
+// │ 영향: 각각에게 맞춘 말이 한자리에 모이는 자리.
+// │ 은유: 상대마다 다르게 말한 것이 들켰을 때. 거짓말은 아니었다.
+// └ 상태: west_debt >= 1 && southLeverage >= 5. 회차당 1회
+서부에 보낸 조건 문서가 남부 상단의 손에 들어갔다는 이야기가 돌았다. # title: 새어 나간 조건
+숨긴 적은 없다. 다만 남부에 제시한 조건과 숫자가 다르다.
+{ valen_introduced: 발렌: 누가 흘렸는지부터 찾아야 합니다. }
+{ rian_introduced: 리안: 다르게 쓴 건 사실입니다. 다르게 쓴 이유가 있었는지가 남습니다. }
+{ seran_introduced && watcher_introduced:
+    세르안: 문서가 어느 경로로 갔는지부터 확정해야 합니다.
+    {name_watcher}: 경로는 셋입니다. 셋 다 우리 쪽에서 나갔습니다.
+}
++ [두 조건이 다른 이유를 양쪽에 설명한다]
+    ~ spent += 2
+    ~ uncertainty -= 1
+    ~ reciprocity += 1
+    ~ last_family = "careful"
+    같은 설명이 두 통 나갔다. 양쪽 다 답신은 짧았고, 따지지는 않았다.
+    ->->
++ [낮은 쪽 조건에 맞춘다]
+    ~ treasury -= 2
+    ~ southLeverage += 1
+    ~ westWarmth += 1
+    ~ last_family = "active"
+    두 문서의 숫자가 같아졌다. 우리 쪽이 그 차액을 냈다.
+    ->->
++ [경로부터 막는다]
+    ~ labor -= 1
+    ~ spent += 1
+    ~ selfProtection += 1
+    ~ last_family = "hard"
+    문서 취급 절차가 바뀌었다. 조건 이야기는 다시 나오지 않았다.
+    ->->
++ [아무 설명도 하지 않는다]
+    ~ westWarmth -= 1
+    ~ southLeverage -= 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    이쪽에서 먼저 꺼내지 않았다. 양쪽도 묻지 않았다. 다음 문서부터 조항이 늘었다.
+    ->->
+
+=== cross_side ===
+~ side_seen = true
+// [교차] 편들기
+// │ 장면: 두 나라가 서로 다투고, 양쪽 다 우리에게 입장을 요구한다.
+// │ 영향: 한쪽 선택 → 다른 쪽 급락. 중립 → 양쪽 소폭 하락 + 양쪽 유지.
+// │ 은유: 중립이 가장 싸 보이지만 아무도 고마워하지 않는 선택.
+// └ 상태: northTension >= 4 && southLeverage >= 5. 회차당 1회
+북부와 남부 사이에 통행 분쟁이 생겼다. 양쪽이 각자 우리에게 문서를 보냈다. # title: 편들기
+두 문서 모두 마지막 줄이 같다. 우리 쪽 입장을 밝혀 달라는 것이다.
+{ valen_introduced: 발렌: 한쪽을 고르면 다른 쪽이 적이 됩니다. }
+{ seran_introduced: 세르안: 고르지 않는 것도 한쪽으로 읽힙니다. 어느 쪽으로 읽힐지는 저쪽이 정합니다. }
++ [북부 쪽 주장을 지지한다]
+    ~ northTension -= 2
+    ~ northContact += 1
+    ~ southLeverage -= 2
+    ~ spent += 1
+    ~ last_family = "hard"
+    공식 입장이 나갔다. 북부 회신은 짧고 분명했다. 남부에서는 회신이 없었다.
+    ->->
++ [남부 쪽 주장을 지지한다]
+    ~ southLeverage += 2
+    ~ northTension += 2
+    ~ northContact -= 2
+    ~ spent += 1
+    ~ last_family = "hard"
+    남부 상단이 바로 다음 계약서를 보냈다. 북부 국경 초소가 하나 늘었다.
+    ->->
++ [양쪽 주장을 그대로 옮겨 적어 보낸다]
+    ~ northTension += 1
+    ~ southLeverage -= 1
+    ~ spent += 1
+    ~ uncertainty -= 1
+    ~ last_family = "careful"
+    우리 판단은 적지 않았다. 양쪽 문서를 나란히 붙여 양쪽에 보냈다.
+    { rian_introduced: 리안: 아무도 고마워하지 않을 겁니다. 다만 아무도 잃지 않습니다. }
+    ->->
++ [분쟁 자체에 관여하지 않는다]
+    ~ northTension += 1
+    ~ southLeverage -= 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    회신하지 않았다. 분쟁은 한 달쯤 뒤 양쪽에서 조용히 정리됐다.
+    ->->
+
+=== cross_overlap ===
+~ overlap_seen = true
+// [교차] 겹치는 약속
+// │ 장면: 서로 다른 나라에 한 두 약속이 같은 자원을 필요로 한다.
+// │ 영향: 국고·인력 직접 충돌. 세금이나 연기 외에 길이 없다.
+// │ 은유: 지킬 생각으로 한 말들이 서로를 못 지키게 만들 때.
+// └ 상태: treasury <= 5 && spent >= 6. 회차당 1회
+담당관이 두 장의 이행 명세를 나란히 놓는다. # title: 겹치는 약속
+같은 달, 같은 창고, 같은 수레다. 두 약속 모두 우리가 먼저 하겠다고 한 것이다.
+{ karden_introduced: 카르덴: 둘 중 하나는 늦습니다. 어느 쪽을 늦출지만 정하시면 됩니다. }
+{ rian_introduced: 리안: 늦는 쪽에는 늦는다고 먼저 말하는 편이 낫습니다. 나중에 알려지는 것보다. }
++ [한쪽에 미리 알리고 늦춘다]
+    ~ spent += 1
+    ~ reciprocity += 1
+    ~ last_family = "careful"
+    먼저 서신이 갔다. 저쪽에서는 알겠다고만 했다. 날짜를 다시 묻지는 않았다.
+    ->->
++ [세금을 앞당겨 걷어 둘 다 지킨다]
+    ~ treasury += 3
+    ~ morale -= 2
+    ~ tax_raised = true
+    ~ last_family = "hard"
+    두 약속 모두 날짜에 맞췄다. 고지서가 한 달 일찍 나갔다.
+    ->->
++ [규모를 반씩 줄여 둘 다 보낸다]
+    ~ southLeverage -= 1
+    ~ westWarmth -= 1
+    ~ spent += 1
+    ~ last_family = "careful"
+    양쪽에 절반씩 갔다. 어느 쪽도 항의하지 않았고, 어느 쪽도 고마워하지 않았다.
+    ->->
++ [아무 말 없이 둘 다 늦춘다]
+    ~ southLeverage -= 2
+    ~ westWarmth -= 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    명세는 다음 달로 넘어갔다. 양쪽에서 각각 확인 서신이 왔다.
+    ->->
+
+// ╔════════════════════════════════════════════════════════════════════════╗
 // ║  왕국 축제 — 해마다 온다. 열 수 있느냐가 상태를 보여준다                 ║
 // ║                                                                        ║
 // ║  ★ 자원이 모자라면 게임이 "못 엽니다"라고 말하지 않는다.                 ║
@@ -1771,6 +1978,7 @@ KING WAS ME
     -> home_ration
 }
 -> domestic_check ->
+-> cross_check ->
 -> festival ->
 -> coast_02 ->
 -> event_13
@@ -2453,6 +2661,7 @@ KING WAS ME
     -> home_backlog
 }
 -> domestic_check ->
+-> cross_check ->
 -> festival ->
 -> event_17
 
