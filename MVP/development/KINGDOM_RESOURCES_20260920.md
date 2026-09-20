@@ -1,5 +1,13 @@
 # 왕국 상태 — 자원 4종 설계
 
+> ## ⚠ 비캐논 — 확정 아님
+>
+> 사용자 승인 전이고 Codex 검증도 받지 않았다. 기준 문서를 덮지 않는다.
+> 충돌 시 `00_START_HERE.md` 절대원칙 → `DESIGN_INTENT` → `DIRECTION_DECISIONS_20260920.md`
+> → `기획/05_multi_kingdom_relationship_routes.md` 가 우선한다.
+> 숫자의 근거와 반증 조건은 `NUMBERS_LEDGER_20260920.md`에 모아 두었다.
+
+
 **상태:** 제안. 사용자 확정 전
 **기준일:** 2026-09-20
 **상위:** `DIRECTION_DECISIONS_20260920.md` D14·D15·D16, `NATION_AXES_20260920.md`
