@@ -92,6 +92,8 @@ VAR illness_seen = false
 VAR return_seen = false
 VAR inward_seen = false
 VAR levy_seen = false
+VAR festival_count = 0
+VAR festival_held = 0
 VAR backlog_seen = false
 
 // ── 1층: 선택 이력 ──
@@ -1069,6 +1071,7 @@ VAR morale = 7
 
 === domestic_gate_act5 ===
 -> domestic_check ->
+-> festival ->
 -> coast_04 ->
 -> event_27
 
@@ -1457,6 +1460,110 @@ KING WAS ME
     ->->
 
 // ╔════════════════════════════════════════════════════════════════════════╗
+// ║  왕국 축제 — 해마다 온다. 열 수 있느냐가 상태를 보여준다                 ║
+// ║                                                                        ║
+// ║  ★ 자원이 모자라면 게임이 "못 엽니다"라고 말하지 않는다.                 ║
+// ║    작년에 있던 선택지가 올해는 화면에 없을 뿐이다. 그게 더 세다.         ║
+// ║  ★ 벌점이 아니다(절대원칙 #6). 거른 해는 민심을 깎지 않는다.             ║
+// ║    다만 올릴 기회를 잃는다.                                             ║
+// ║  ★ 회복 폭을 작게 둔다(+2/+1). 크게 두면 밖에 많이 쓴 왕이 축제로        ║
+// ║    전부 만회해 §N("둘 다 챙기면 민심을 잃는다")이 무너진다. 실측 확인.   ║
+// ║  ★ 왕의 앎/모름을 화제로 삼지 않는다(D20). 사람들이 자기 일을 할 뿐이다. ║
+// ╚════════════════════════════════════════════════════════════════════════╝
+
+=== festival ===
+-> clamp_state ->
+~ festival_count += 1
+// [내정] 추수 축제
+// │ 장면: 해마다 오는 축제. 열 수 있는 규모가 그해 왕국의 형편이다.
+// │ 영향: 선택지 자체가 자원으로 잠긴다. 민심 회복의 정기 창구.
+// │ 은유: 여유가 있어야 할 수 있는 일. 없다고 벌을 받지는 않는다.
+// └ 상태: 회차당 최대 3회. 자벨 해금 지점(첫 축제)
+{ festival_count == 1:
+    도성 광장에 장대가 섰다. 해마다 서는 것이다. # title: 추수 축제
+    올해는 누가 무엇을 맡을지 정하는 종이가 먼저 올라온다.
+}
+{ festival_count == 2:
+    다시 추수철이다. 광장에 장대가 선다. # title: 추수 축제
+    작년에 쓴 천막을 그대로 쓸 수 있는지부터 묻는다.
+}
+{ festival_count >= 3:
+    또 한 해가 갔다. 광장 일정표가 올라온다. # title: 추수 축제
+    올해 몫으로 잡아 둔 항목이 얼마인지 담당관이 먼저 읽는다.
+}
+{ karden_introduced: 카르덴: 작년보다 값이 올랐습니다. 같은 규모면 더 듭니다. }
+{ karden_introduced && treasury <= 3: 카르덴: 지금 국고로는 천막 값도 빠듯합니다. }
+
+// 자벨은 여유가 생겼을 때 등장한다. 축제를 열 수 있다는 것이 그 여유의 증거다.
+{ treasury >= 5 && grain >= 4 && not fool_introduced:
+    ~ fool_introduced = true
+    광대 하나가 일거리를 찾아 궁에 들어왔다. 축제에는 늘 광대가 필요하다.
+    {name_fool}: 올해는 제가 있으니 장대가 덜 외롭겠습니다.
+}
+
++ { treasury >= 5 && grain >= 4 } [예년대로 연다]
+    ~ treasury -= 3
+    ~ grain -= 2
+    ~ morale += 2
+    ~ festival_held += 1
+    ~ last_family = "active"
+    사흘 동안 광장이 찼다. 변경 마을에서도 수레가 올라왔다.
+    -> festival_scene ->
+    -> DONE_FESTIVAL
++ { treasury >= 2 && (treasury < 5 || grain < 4) } [규모를 줄여 연다]
+    ~ treasury -= 1
+    ~ morale += 1
+    ~ festival_held += 1
+    ~ last_family = "careful"
+    하루로 줄였다. 천막은 작년 것을 그대로 썼다. 사람은 그래도 모였다.
+    -> festival_scene ->
+    -> DONE_FESTIVAL
++ { treasury >= 5 && grain >= 4 } [규모를 줄여 연다]
+    ~ treasury -= 1
+    ~ morale += 1
+    ~ festival_held += 1
+    ~ last_family = "careful"
+    할 수 있었지만 하루로 줄였다. 남은 몫은 장부에 그대로 있다.
+    -> festival_scene ->
+    -> DONE_FESTIVAL
++ [올해는 넘어간다]
+    ~ last_family = "careful"
+    장대는 서지 않았다. 광장은 평소처럼 장이 섰다가 저물었다.
+    { festival_held == 0 && festival_count >= 2:
+        담당관은 내년 일정표를 그대로 접어 두었다.
+    }
+    -> DONE_FESTIVAL
+
+= DONE_FESTIVAL
+->->
+
+// ─────────────────────────────────────────────────────────────────────────
+
+=== festival_scene ===
+// 축제 안의 한 장면. 결정은 없다 — 구경하는 자리다.
+// 대신들이 각자 성격대로 반응하는 것이 이 장면의 전부다.
+// 발렌은 13인 중 유일하게 몸을 쓰는 인물이라 이런 자리가 그에게 필요하다.
+{ valen_introduced:
+    해 질 무렵, 광장 한쪽에서 사람이 모인다. 변경에서 온 대장장이가 씨름판을 열었다.
+    발렌이 외투를 벗어 부관에게 넘긴다.
+    { karden_introduced: 카르덴: 원수님은 작년 가을에 어깨를 다치셨습니다. 기록에 있습니다. }
+    { seran_introduced: 세르안: 기록이 있다고 안 하시는 건 아니지요. }
+    { rian_introduced: 리안: 이기는 쪽보다 진 쪽이 뭐라고 하는지 보면 됩니다. }
+    { fool_introduced:
+        {name_fool}: 저는 힘으로는 안 되겠고, 저 장대를 원수님보다 빨리 오르겠습니다.
+        {name_fool}: 규칙은 제가 정하겠습니다. 제가 심판이기도 하고요.
+    }
+    // 승패를 적지 않는다. 결과가 아니라 자리가 목적이다.
+    한참 뒤 사람들이 흩어졌다. 대장장이는 술을 얻어 마셨고, 발렌은 외투를 도로 입었다.
+    { valen_introduced: 발렌: 저 사람, 내년에도 옵니까? }
+}
+{ not valen_introduced:
+    해 질 무렵 광장 한쪽에서 씨름판이 열렸다. 변경에서 온 대장장이가 셋을 눕혔다.
+    구경하던 사람들이 값을 걸기 시작했고, 담당관이 말리다가 같이 걸었다.
+}
+->->
+
+// ╔════════════════════════════════════════════════════════════════════════╗
 // ║  해안 — 서브 루트. 부담 없는 접촉                                        ║
 // ║  D13 가벼운 친분. 확장하지 않는다 — 메인 루트 사이에서 리듬만 바꾼다.     ║
 // ║  ★ 기계적 역할: 민심을 올리는 유일한 외교다.                             ║
@@ -1664,6 +1771,7 @@ KING WAS ME
     -> home_ration
 }
 -> domestic_check ->
+-> festival ->
 -> coast_02 ->
 -> event_13
 
@@ -2345,6 +2453,7 @@ KING WAS ME
     -> home_backlog
 }
 -> domestic_check ->
+-> festival ->
 -> event_17
 
 === home_backlog ===
