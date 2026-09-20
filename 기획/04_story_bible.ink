@@ -67,7 +67,75 @@ VAR envoy_dispatched = true    // E18에서 사절단을 실제로 보냈는가
 VAR king_abroad = false        // 왕이 지금 동부 땅에 있는가(E20 귀환 시 해제)
 VAR east_form = "open"         // 동부 관계의 최종 형태: open | formal | bounded
 
+// ── 북부 접촉 (비캐논 제안: MVP/development/NUMBERS_LEDGER_20260920.md §D) ──
+// 북부는 우리가 먼저 움직여야만 오른다. 관문 2/4/6에서 다음 칸이 열린다.
+// 일관된 행동은 +2, 습관과 어긋난 행동은 +1 — 정수 유지를 위해 원안(+1, 관문 1/2/3)을 2배로 옮겼다.
+VAR northContact = 0
+VAR north_form = "wary"        // quiet_trust | wary | frozen
+VAR backlog_seen = false
+
+// ── 1층: 선택 이력 ──
+// 밖에 쓴 주의의 총량. 어느 나라든 여기로 들어간다(D14). 자원이 아니다.
+VAR spent = 0
+// 직전 선택의 계열. 일관성 보정에 쓴다: active | careful | hard
+VAR last_family = ""
+
+// ── 2층: 왕국 상태 ── 0~12. 밴드 0-2 위태 / 3-5 부족 / 6-8 보통 / 9-12 여유
+// 국고·곡물·인력은 서재 장부에 보인다. morale은 보이지 않는다(D15).
+VAR treasury = 8
+VAR grain = 8
+VAR labor = 7
+VAR morale = 7
+
 -> event_01
+
+// 일관성 보정: 직전과 같은 계열이면 효과 그대로, 어긋나면 절반.
+// 사람은 한 번의 행동이 아니라 패턴을 읽는다(NATION_AXES §2.2).
+=== function consistent(fam) ===
+~ return last_family == "" || last_family == fam
+
+// 상태 클램프. Ink에는 대입 시 상한/하한이 없어 값이 범위를 벗어난다.
+// 자원은 0~12(NUMBERS_LEDGER §E), northContact 바닥은 0(§D).
+// 라우터마다 터널로 통과시킨다: -> clamp_state ->
+=== clamp_state ===
+{ northContact < 0:
+    ~ northContact = 0
+}
+{ northTension < 0:
+    ~ northTension = 0
+}
+{ northTension > 12:
+    ~ northTension = 12
+}
+{ treasury < 0:
+    ~ treasury = 0
+}
+{ treasury > 12:
+    ~ treasury = 12
+}
+{ grain < 0:
+    ~ grain = 0
+}
+{ grain > 12:
+    ~ grain = 12
+}
+{ labor < 0:
+    ~ labor = 0
+}
+{ labor > 12:
+    ~ labor = 12
+}
+{ morale < 0:
+    ~ morale = 0
+}
+{ morale > 12:
+    ~ morale = 12
+}
+{ spent < 0:
+    ~ spent = 0
+}
+->->
+
 
 === event_01 ===
 ~ seran_introduced = true
@@ -107,12 +175,12 @@ VAR east_form = "open"         // 동부 관계의 최종 형태: open | formal 
 { valen_introduced: 발렌: 그럼 대비만 하면 됩니다. }
 + [정찰 강화]
     ~ northTension += 1
-    -> event_04
+    -> north_02
 + [수비 증강]
     ~ northTension += 1
-    -> event_04
-+ [외교 확인 요청] -> event_04
-+ [관찰 유지] -> event_04
+    -> north_02
++ [외교 확인 요청] -> north_02
++ [관찰 유지] -> north_02
 
 === event_04 ===
 // [동부] 새로운 왕국
@@ -331,15 +399,15 @@ VAR east_form = "open"         // 동부 관계의 최종 형태: open | formal 
 + [수비 증강]
     ~ north_hardline = true
     ~ northTension += 2
-    -> event_08 // Strong Choice — E21 발생 조건에 기여
+    -> north_04 // Strong Choice — E21 발생 조건에 기여
 + [정찰 확대]
     ~ northTension += 1
-    -> event_08
+    -> north_04
 + [외교 채널로 확인 요청]
     ~ north_deescalate = true
     ~ northTension -= 1
-    -> event_08
-+ [이전 대응 유지] -> event_08
+    -> north_04
++ [이전 대응 유지] -> north_04
 
 === event_08 ===
 // [동부] 공동 축제
@@ -607,12 +675,12 @@ VAR east_form = "open"         // 동부 관계의 최종 형태: open | formal 
 // └ 상태: 본문 2줄 — 확장 필요
 같은 북부 국경 상황을 두고 여러 부서가 서로 다른 해석을 담은 보고를 올린다.
 { valen_introduced: 발렌: 그래서 실제로 달라진 건 뭡니까? }
-+ [공통 사실만 기준] -> event_17
++ [공통 사실만 기준] -> north_06
 + [추가 정보 수집]
     ~ watcher_unlocked = true
-    -> event_17
-+ [행동으로 확인] -> event_17
-+ [현재 방침 유지] -> event_17
+    -> north_06
++ [행동으로 확인] -> north_06
++ [현재 방침 유지] -> north_06
 
 === event_17 ===
 { watcher_unlocked:
@@ -779,17 +847,17 @@ VAR east_form = "open"         // 동부 관계의 최종 형태: open | formal 
 { karden_introduced: 카르덴: 우리 병사들부터 진정시켜야 합니다. }
 + [즉시 강경 대응]
     ~ northTension += 2
-    -> event_22 // Strong Branch — 이후 북부 관계 긴장 국면 전환
-+ [공식 채널로 해명 요구] -> event_22
+    -> north_08 // Strong Branch — 이후 북부 관계 긴장 국면 전환
++ [공식 채널로 해명 요구] -> north_08
 + [현장 지휘관에 자제 지시]
     ~ northTension -= 1
-    -> event_22
-+ [침묵 유지] -> event_22
+    -> north_08
++ [침묵 유지] -> north_08
 
 === bridge_stable_border ===
 // 브리지 — 안정된 국경 (E21 스킵 대체, 선택 없음)
 북부 쪽에서는 며칠째 별다른 보고가 없다. 담당 서기관의 보고에는 "조용합니다"라고 적혀 있다.
--> event_22
+-> north_08
 
 === event_22 ===
 // 라우터: 왕이 지금도 동부에 있을 때만 대면 장면. 귀환했으면 기본형(D15 정합성).
@@ -1012,8 +1080,14 @@ VAR east_form = "open"         // 동부 관계의 최종 형태: open | formal 
 { southLeverage >= 6:
 남부 상단이 다음 수로 구간을 함께 검토하자는 계약 초안을 보냈다.
 }
-{ northTension < 5:
-북부 변경국이 공동 통신선을 시험하자고 제안했다.
+{ north_form == "quiet_trust":
+북부 변경국이 공동 통신선을 시험하자고 제안했다. 우리 쪽 답을 기다리지 않고 날짜까지 적어 보냈다.
+}
+{ north_form == "wary":
+북부 변경국에서 국경 통행 절차를 정리한 문서가 왔다. 새로운 제안은 없다.
+}
+{ north_form == "frozen":
+북부 국경은 조용하다. 초소도 병력도 그대로 있다.
 }
 { coastalFamiliarity >= 3:
 해안 도시에서 다음 축제의 빈 자리를 알리는 초대장이 왔다.
@@ -1067,6 +1141,394 @@ KING WAS YOU
 KING WAS ME
 -> END
 
+
+// ╔════════════════════════════════════════════════════════════════════════╗
+// ║  북부 루트 — 적대로 열고, 우리가 가야만 천천히 녹는다                   ║
+// ║  사용자 방향(2026-09-20). 구조·수치는 NUMBERS_LEDGER §C·§D (비캐논).     ║
+// ║  관문 northContact 2/4/6. 일관된 행동 +2, 어긋난 행동 +1, 강경 -4.       ║
+// ║  ⚠ 루트 이름 knot이므로 본문 줄 끝의 `# act: N` 태그가 ACT를 정한다.     ║
+// ╚════════════════════════════════════════════════════════════════════════╝
+
+=== north_02 ===
+// [북부] 답 없는 서신
+// │ 장면: 우리가 보낸 공식 서신에 답이 없다. 거절도 항의도 아니다.
+// │ 영향: northContact의 시작점. "내가 가야만 움직인다"를 여기서 배운다.
+// │ 은유: 읽었는지도 모르는 채로 기다리는 일.
+// └ 상태: 북부 1번 칸. 분기 없음 — 적대 전제를 확인시키는 자리
+북부 변경국에 보낸 공식 서신에 답이 없다. # act: 1 # title: 답 없는 서신
+거절도 항의도 아니다. 국경은 어제와 같고, 우리 기록에는 "발송"까지만 적혀 있다.
+{ valen_introduced: 발렌: 무시당한 겁니다. }
+{ seran_introduced: 세르안: 답이 없는 것과 거절은 다릅니다. 우리는 아직 아무 말도 듣지 못했습니다. }
++ [같은 내용으로 한 번 더 보낸다]
+    { consistent("careful"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "careful"
+    ~ labor -= 1
+    ~ spent += 1
+    ~ caution += 1
+    두 번째 서신이 같은 경로로 떠난다. 필경사 한 사람이 그 일로 이틀을 썼다.
+    -> event_04
++ [북부 쪽 문서 관례에 맞춰 다시 쓴다]
+    { consistent("careful"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "careful"
+    ~ labor -= 1
+    ~ spent += 1
+    ~ uncertainty -= 1
+    북부의 옛 문서를 찾아 형식을 맞춘다. 서두와 맺음이 우리 것과 다르다.
+    { karden_introduced: 카르덴: 그쪽 서식을 쓰려고 사람 둘이 사흘을 썼습니다. }
+    -> event_04
++ [답이 올 때까지 기다린다]
+    ~ last_family = "careful"
+    ~ caution += 1
+    다음 서신은 보내지 않는다. 국경 보고는 계속 "변화 없음"이다.
+    -> event_04
++ [국경 순찰 일정을 공개한다]
+    ~ northTension += 1
+    ~ northContact -= 4
+    ~ last_family = "hard"
+    ~ selfProtection += 1
+    ~ spent += 1
+    순찰 일정을 공개한다. 숨길 것이 없다는 뜻이기도 하고, 보라는 뜻이기도 하다.
+    -> event_04
+
+=== north_04 ===
+// 라우터: 접촉이 쌓였고 강경 노선이 아닐 때만 장터가 열린다
+-> clamp_state ->
+{ northContact >= 2 && not north_hardline:
+    -> north_04_market
+- else:
+    -> north_04_closed
+}
+
+=== north_04_market ===
+// [북부] 국경 장터 (온)
+// │ 장면: 공식 합의가 없는데 양측 주민이 알아서 장을 연다.
+// │ 영향: 첫 "조용한 교류". 묵인이 곧 신호가 된다.
+// │ 은유: 정해진 건 없는데 자연스럽게 생긴 접점.
+// └ 상태: northContact >= 2 && not north_hardline
+국경 마을에서 양측 주민이 알아서 장을 열었다는 보고. # act: 2 # title: 국경 장터
+어느 쪽도 허가한 적이 없다. 북부 초소도 막지 않았다고 적혀 있다.
+{ rian_introduced: 리안: 금지한 적도 없습니다. }
+{ valen_introduced: 발렌: 통제 밖이라는 뜻입니다. }
++ [모른 척한다]
+    { consistent("careful"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "careful"
+    ~ northTension -= 1
+    아무 지시도 내려가지 않는다. 장은 다음 장날에도 섰다.
+    -> event_08
++ [규모만 적어 오라고 지시한다]
+    { consistent("careful"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "careful"
+    ~ labor -= 1
+    ~ spent += 1
+    ~ uncertainty -= 1
+    장날마다 품목과 사람 수가 적혀 올라온다. 북부 쪽도 같은 날 같은 것을 적는다는 이야기가 있다.
+    -> event_08
++ [정식으로 허가한다고 알린다]
+    { consistent("active"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "active"
+    ~ spent += 1
+    ~ initiative += 1
+    ~ northTension += 1
+    허가 문서가 국경에 붙는다. 북부 쪽에서는 그 문서를 떼지도 붙이지도 않았다.
+    { seran_introduced: 세르안: 이름을 붙이면 상대도 이름을 붙여야 합니다. }
+    -> event_08
++ [장터를 금지한다]
+    ~ northContact -= 4
+    ~ northTension += 1
+    ~ last_family = "hard"
+    ~ selfProtection += 1
+    ~ morale -= 1
+    금지령이 내려간다. 국경 마을 사람들은 항의하지 않았다. 그냥 나오지 않았다.
+    -> event_08
+
+=== north_04_closed ===
+// [북부] 닫힌 장터 (냉)
+// │ 장면: 같은 장터가 열렸지만 양측이 단속한다.
+// │ 영향: 강경 노선에서는 접점이 생기다 만다.
+// │ 은유: 생길 뻔한 접점이 양쪽 눈치 때문에 닫히는 일.
+// └ 상태: northContact < 2 또는 north_hardline
+국경 마을에서 장이 섰다가 하루 만에 흩어졌다는 보고. # act: 2 # title: 닫힌 장터
+우리 쪽 초소가 먼저 막았고, 북부 초소도 같은 날 사람을 물렸다.
+{ valen_introduced: 발렌: 잘한 일입니다. 통제 밖이었습니다. }
+{ rian_introduced: 리안: 양쪽이 같은 날 같은 판단을 했습니다. 그것도 일종의 신호입니다. }
++ [현재 방침을 유지한다]
+    ~ last_family = "hard"
+    ~ selfProtection += 1
+    국경 통제는 그대로 간다. 다음 장날에는 아무도 나오지 않았다.
+    -> event_08
++ [막은 이유를 문서로 남겨 북부에 보낸다]
+    { consistent("careful"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "careful"
+    ~ labor -= 1
+    ~ spent += 1
+    ~ caution += 1
+    막은 경위를 적어 보낸다. 해명도 항의도 아닌, 그냥 기록이다.
+    -> event_08
++ [우리 쪽 단속만 푼다]
+    { consistent("active"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "active"
+    ~ initiative += 1
+    ~ spent += 1
+    우리 초소만 물러난다. 북부 쪽은 그대로다. 며칠 동안은 우리 쪽 사람만 서 있었다.
+    -> event_08
++ [국경 통제를 더 강화한다]
+    ~ northContact -= 4
+    ~ northTension += 1
+    ~ last_family = "hard"
+    ~ selfProtection += 1
+    초소가 하나 더 선다. 그 다음 주, 북부 쪽에도 하나가 더 섰다.
+    -> event_08
+
+=== north_06 ===
+// 라우터: 접촉이 더 쌓였을 때만 답이 온다
+-> clamp_state ->
+{ northContact >= 4:
+    -> north_06_reply
+- else:
+    -> north_06_instead
+}
+
+=== north_06_reply ===
+// [북부] 늦은 답신 (온)
+// │ 장면: 오래전 보낸 서신에 뒤늦게 답이 온다. 짧고 사무적이다.
+// │ 영향: 북부는 느리지만 끊지 않는다는 것을 처음으로 보여준다.
+// │ 은유: 잊은 줄 알았는데 답이 왔을 때. 짧아서 더 크게 읽힌다.
+// └ 상태: northContact >= 4
+북부 변경국에서 답신이 왔다. # act: 3 # title: 늦은 답신
+넉 줄이다. 인사도 없고 제안도 없다. 우리가 보낸 문서를 받았다는 것과, 국경 통행 관례를 적어 두었다는 내용뿐이다.
+{ karden_introduced: 카르덴: 이게 답입니까? }
+{ seran_introduced: 세르안: 넉 줄을 쓰려고 저쪽에서도 회의를 했을 겁니다. }
++ [같은 길이로 답한다]
+    { consistent("careful"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "careful"
+    ~ labor -= 1
+    ~ spent += 1
+    ~ caution += 1
+    넉 줄로 답한다. 받았다는 것과, 우리 쪽 관례를 적어 보낸다.
+    -> north_06_after
++ [적혀 온 관례를 우리 쪽 규정에 반영한다]
+    { consistent("careful"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "careful"
+    ~ labor -= 1
+    ~ spent += 1
+    ~ uncertainty -= 1
+    국경 규정이 몇 줄 바뀐다. 북부에 알리지는 않았다. 다음 통행에서 알게 될 것이다.
+    -> north_06_after
++ [이번엔 길게 써서 제안을 넣는다]
+    { consistent("active"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "active"
+    ~ initiative += 1
+    ~ spent += 2
+    ~ labor -= 1
+    긴 서신이 떠난다. 공동 순찰과 통신선 이야기가 들어 있다.
+    { rian_introduced: 리안: 넉 줄에 스무 줄로 답하면, 저쪽은 우리가 급하다고 읽습니다. }
+    -> north_06_after
++ [답하지 않는다]
+    ~ last_family = "careful"
+    ~ caution += 1
+    답신은 보내지 않는다. 받았다는 기록만 남는다.
+    -> north_06_after
+
+=== north_06_instead ===
+// [북부] 답 대신 온 것 (냉)
+// │ 장면: 답신 자리에 병력 증강 보고가 온다.
+// │ 영향: 접촉이 모자란 경로에서는 침묵이 다른 것으로 채워진다.
+// │ 은유: 기다리던 답 대신 다른 소식이 오는 일.
+// └ 상태: northContact < 4
+북부에서 답신은 오지 않았다. 대신 국경 너머 병력이 늘었다는 보고가 올라온다. # act: 3 # title: 답 대신 온 것
+침범은 없다. 늘어난 규모도 크지 않다. 다만 우리가 기다리던 것은 이것이 아니었다.
+{ valen_introduced: 발렌: 답은 이미 온 겁니다. 이게 답입니다. }
+{ rian_introduced: 리안: 병력과 답신은 다른 사람이 정합니다. }
++ [문의 서신을 보낸다]
+    { consistent("careful"):
+        ~ northContact += 2
+    - else:
+        ~ northContact += 1
+    }
+    ~ last_family = "careful"
+    ~ labor -= 1
+    ~ spent += 1
+    ~ caution += 1
+    세 번째 서신이 떠난다. 이번에는 답을 요구하지 않고 사실만 묻는다.
+    -> north_06_after
++ [우리도 같은 규모로 늘린다]
+    ~ northContact -= 4
+    ~ northTension += 2
+    ~ last_family = "hard"
+    ~ selfProtection += 1
+    ~ treasury -= 1
+    ~ labor -= 1
+    국경 수비가 같은 규모로 는다. 양쪽 초소가 서로를 마주 본다.
+    -> north_06_after
++ [지켜보기만 한다]
+    ~ last_family = "careful"
+    ~ caution += 1
+    추가 지시는 없다. 보고는 계속 올라온다.
+    -> north_06_after
++ [국경 마을 사람들을 뒤로 물린다]
+    ~ northTension += 1
+    ~ morale -= 1
+    ~ last_family = "hard"
+    ~ selfProtection += 1
+    ~ labor -= 1
+    국경에서 가장 가까운 두 마을이 뒤로 물러난다. 이유는 공지되지 않았다.
+    -> north_06_after
+
+=== north_06_after ===
+// 라우터: 밖에 쓴 주의가 임계를 넘으면 밀린 안건이 올라온다(D14)
+// ⚠ 임계 3은 이 슬라이스 검증용 임시값이다. 최종안은 4/8/12(NUMBERS_LEDGER §F).
+//   지금은 stance가 북부 4칸에만 붙어 있어 spent가 그 이상 오르기 어렵다.
+-> clamp_state ->
+{ spent >= 3 && not backlog_seen:
+    -> home_backlog
+- else:
+    -> event_17
+}
+
+=== home_backlog ===
+~ backlog_seen = true
+// [내정] 밀린 안건
+// │ 장면: 서기관이 결재가 밀린 안건 묶음을 들고 온다. 전부 사소하다.
+// │ 영향: D14 회수 지점 — 밖에 쓴 주의가 안에서 청구서로 돌아온다.
+// │ 은유: 한쪽에 마음 쓰는 동안 나머지가 쌓여 있던 것.
+// └ 상태: spent 임계에서만 발생. 외교 소모가 내정으로 돌아오는 첫 고리
+서기관이 결재가 밀린 안건 묶음을 들고 온다. # act: 3 # title: 밀린 안건
+전부 사소한 것들이다. 급한 것은 하나도 없다. 그래서 여태 밀려 있었다.
+{ karden_introduced: 카르덴: 국경 쪽에 사람을 보내는 동안 이쪽이 비었습니다. }
+{ not karden_introduced: 서기관은 언제 처리할지만 묻고 물러난다. }
++ [오늘 안에 전부 처리한다]
+    ~ labor -= 1
+    ~ spent -= 2
+    밤늦게까지 결재가 이어진다. 다음 날 아침, 책상 위가 비어 있다.
+    -> event_17
++ [급한 것만 고르고 나머지는 미룬다]
+    ~ morale -= 1
+    ~ spent -= 1
+    묶음이 둘로 나뉜다. 작은 쪽이 처리되고 큰 쪽은 그대로 남는다.
+    -> event_17
++ [담당 부서에 일괄 위임한다]
+    ~ labor -= 1
+    ~ morale -= 1
+    ~ spent -= 2
+    안건은 부서로 내려간다. 어떻게 처리됐는지는 올라오지 않는다.
+    -> event_17
+
+=== north_08 ===
+// 라우터: 형태 확정. 쌓인 접촉과 남은 긴장을 함께 본다
+-> clamp_state ->
+{ northContact >= 6 && northTension <= 2:
+    -> north_08_line
+- else:
+    -> north_08_frozen
+}
+
+=== north_08_line ===
+~ north_form = "quiet_trust"
+// [북부] 공동 통신선 (온) — 북부가 처음으로 먼저 제안한다
+// │ 장면: 북부가 먼저 제안한다. 통신선 시험 — 작고 실무적이다.
+// │ 영향: north_form = quiet_trust. 느린 루트의 payoff.
+// │ 은유: 오래 걸렸지만 상대가 먼저 움직인 순간. 크지 않아서 더 확실하다.
+// └ 상태: northContact >= 6 && northTension <= 2
+북부 변경국에서 사람이 왔다. 우리가 부르지 않았다. # act: 4 # title: 공동 통신선
+제안은 작다. 국경 두 지점 사이에 신호 초소를 하나씩 두고, 급한 일이 있을 때만 쓰자는 것이다.
+{ seran_introduced: 세르안: 저쪽이 먼저 온 것은 이번이 처음입니다. }
+{ karden_introduced: 카르덴: 초소 둘이면 사람 넷입니다. 그 정도는 됩니다. }
++ [제안한 대로 받는다]
+    ~ treasury -= 1
+    ~ labor -= 1
+    ~ spent += 1
+    ~ last_family = "careful"
+    합의는 한 장으로 끝난다. 양쪽이 같은 날 초소를 세웠다.
+    -> event_22
++ [범위를 넓혀 함께 쓰자고 제안한다]
+    ~ treasury -= 2
+    ~ labor -= 1
+    ~ spent += 2
+    ~ initiative += 1
+    ~ last_family = "active"
+    우리 쪽에서 지점을 둘 더 제안한다. 북부는 하나만 받고 하나는 다음에 보자고 했다.
+    { rian_introduced: 리안: 하나를 남겨 둔 것은 다음에 만날 이유를 남긴 겁니다. }
+    -> event_22
++ [시험 기간을 정해 두고 받는다]
+    ~ treasury -= 1
+    ~ labor -= 1
+    ~ spent += 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    기한이 적힌다. 기한이 지나면 다시 이야기하기로 한다. 북부는 그 조항을 그대로 옮겨 적었다.
+    -> event_22
+
+=== north_08_frozen ===
+// [북부] 굳어진 선 (냉) — 실패가 아니라 거리를 둔 형태다(D1)
+// │ 장면: 국경 규칙이 문서로 정리된다. 왕래는 늘지 않는다.
+// │ 영향: north_form = frozen 또는 wary. 유지 비용이 국고에서 나간다.
+// │ 은유: 서로 넘지 않기로 한 선. 안전하지만 아무 일도 생기지 않는다.
+// └ 상태: 위 조건 밖. 냉전 결말을 실패로 쓰지 않는다
+북부와의 국경 규칙이 문서로 정리된다. # act: 4 # title: 굳어진 선
+왕래를 늘리는 조항은 없다. 서로 어디까지 오지 않을지만 적혀 있다.
+{ valen_introduced: 발렌: 이게 제일 깔끔합니다. }
+{ seran_introduced: 세르안: 다투지 않기로 한 것과 가까워지는 것은 다릅니다. 우리는 앞쪽을 골랐습니다. }
++ [문서대로 확정한다]
+    ~ north_form = "frozen"
+    ~ treasury -= 1
+    ~ last_family = "hard"
+    양측 기록관이 같은 문서에 서명한다. 국경 병력은 그대로 유지된다.
+    -> event_22
++ [통행 절차만 한 줄 남겨 둔다]
+    ~ north_form = "wary"
+    ~ treasury -= 1
+    ~ spent += 1
+    ~ last_family = "careful"
+    필요할 때 통행을 신청할 수 있다는 조항 하나가 들어간다. 쓴 적은 아직 없다.
+    -> event_22
++ [병력을 줄이고 선만 남긴다]
+    ~ north_form = "wary"
+    ~ treasury += 1
+    ~ labor += 1
+    ~ northTension -= 1
+    ~ last_family = "careful"
+    초소 절반이 철수한다. 선은 그대로지만 지키는 사람은 줄었다.
+    -> event_22
 
 // ╔════════════════════════════════════════════════════════════════════════╗
 // ║  신규 사건 뼈대 (2026-09-20, DIRECTION_DECISIONS_20260920.md D4·D7·D13)  ║
