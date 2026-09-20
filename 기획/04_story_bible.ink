@@ -84,6 +84,13 @@ VAR south_form = "contract"    // partner | contract | slowed
 VAR west_debt = 0              // 우리가 아쉬운 쪽임을 드러낸 정도. 낮아야 대등해진다
 VAR west_form = "dependent"    // equal | traded | dependent
 VAR ration_seen = false
+VAR tax_seen = false
+VAR tax_raised = false
+VAR arrears_seen = false
+VAR leave_seen = false
+VAR illness_seen = false
+VAR return_seen = false
+VAR inward_seen = false
 VAR backlog_seen = false
 
 // ── 1층: 선택 이력 ──
@@ -815,12 +822,12 @@ VAR morale = 7
 { rian_introduced: 리안: 선이 생겼다는 것과 적이 됐다는 것은 다릅니다. }
 { karden_introduced: 카르덴: 여기서 더 밀면 우리 선택이 아니라 침범이 됩니다. }
 { valen_introduced: 발렌: 돌아갈 수도 있습니다. }
-+ [기다림] -> event_21
-+ [규모 축소] -> event_21
++ [기다림] -> domestic_gate_act4
++ [규모 축소] -> domestic_gate_act4
 + [철수]
     ~ eastWarmth -= 1
-    -> event_21
-+ [공식 사유 확인] -> event_21
+    -> domestic_gate_act4
++ [공식 사유 확인] -> domestic_gate_act4
 
 === event_20_visit ===
 // [동부·방문] E20′ 동부 땅에서 (2026-09-19 프로즈 작성 완료, 04_story_bible.md Event 20′ 참고)
@@ -830,13 +837,17 @@ VAR morale = 7
 { rian_introduced: 리안: 선이 생겼다는 것과 적이 됐다는 것은 다릅니다. 여기 직접 서 계셔도 그 사실은 바뀌지 않습니다. }
 { karden_introduced: 카르덴: 폐하를 이 자리에 이렇게 오래 세워둘 수는 없습니다. }
 { valen_introduced: 발렌: 지금이라도 돌아가실 수 있습니다. }
-+ [성문 앞에서 기다린다] -> event_21
-+ [수행 규모를 줄여 다시 요청한다] -> event_21
++ [성문 앞에서 기다린다] -> domestic_gate_act4
++ [수행 규모를 줄여 다시 요청한다] -> domestic_gate_act4
 + [돌아간다]
     ~ eastWarmth -= 1
     ~ king_abroad = false
-    -> event_21
-+ [공식 사유를 요청한다] -> event_21
+    -> domestic_gate_act4
++ [공식 사유를 요청한다] -> domestic_gate_act4
+
+=== domestic_gate_act4 ===
+-> domestic_check ->
+-> event_21
 
 === event_21 ===
 // 라우터: E07 north_hardline + northTension 임계값
@@ -1055,6 +1066,11 @@ VAR morale = 7
 + [휴식/정비] -> south_08
 + [동부 최소 업무 유지] -> south_08
 
+=== domestic_gate_act5 ===
+-> domestic_check ->
+-> coast_04 ->
+-> event_27
+
 === event_27 ===
 ~ chaplain_introduced = true
 새 협력의 자리에 대사제가 소개된다.
@@ -1153,6 +1169,304 @@ KING WAS YOU
 KING WAS ME
 -> END
 
+
+// ╔════════════════════════════════════════════════════════════════════════╗
+// ║  내정 — 조건부 사건 배차                                                 ║
+// ║  외교의 결과가 자원으로 쌓이고, 자원이 밴드를 넘으면 여기서 올라온다.     ║
+// ║  D14(밖에 쓴 만큼 안이 밀린다) / D15(외교 선택의 물질적 결과)            ║
+// ║  / D16(국고를 채우는 길은 민심을 쓰는 것뿐).                             ║
+// ║                                                                        ║
+// ║  ★ 벌점이 아니다. 미뤄둔 일이 실제로 쌓이는 것이다(절대원칙 #6).         ║
+// ║  ★ 한 번의 점검에서 최대 한 건만 올라온다. 사건이 서사를 덮지 않게.      ║
+// ║  ★ 각 사건은 회차당 1회. `*_seen` 플래그로 잠근다.                       ║
+// ║  ★ 이 블록의 사건에는 `# act:` 태그를 붙이지 않는다.                     ║
+// ║    뜨는 시점이 고정이 아니라 배차 지점마다 다르기 때문이다.              ║
+// ║    태그를 박으면 ACT가 거꾸로 간다(ACT4에서 ACT3으로). 실측 확인.        ║
+// ║    태그가 없으면 직전 event_NN의 ACT를 그대로 물려받는다.                ║
+// ╚════════════════════════════════════════════════════════════════════════╝
+
+=== domestic_check ===
+-> clamp_state ->
+// 급한 것부터 본다. 하나가 올라오면 그 자리에서 돌아간다.
+{ treasury <= 4 && not tax_seen:
+    -> home_tax ->
+    ->->
+}
+{ morale <= 3 && not leave_seen:
+    -> home_leave ->
+    ->->
+}
+{ tax_raised && morale <= 5 && not arrears_seen:
+    -> home_arrears ->
+    ->->
+}
+{ labor <= 4 && not illness_seen:
+    -> home_illness ->
+    ->->
+}
+{ leave_seen && morale >= 6 && not return_seen:
+    -> home_return ->
+    ->->
+}
+// 밖에 덜 쓴 왕에게만 온다. 방어적 플레이가 안을 돌볼 수 있는 유일한 자리다.
+{ spent <= 2 && treasury >= 6 && not inward_seen:
+    -> home_inward ->
+    ->->
+}
+->->
+
+// ─────────────────────────────────────────────────────────────────────────
+
+=== home_tax ===
+~ tax_seen = true
+// [내정] 세금 (D16)
+// │ 장면: 국고가 모자란다. 세금을 올릴 수 있다. 올리면 걷히고, 대신 무언가 생긴다.
+// │ 영향: ★ 국고를 채우는 유일한 길. 대가는 민심이다.
+// │ 은유: 체력을 더 써서 관계에 쏟기로 하는 결정. 강요가 아니라 내 선택이다.
+// └ 상태: treasury <= 4. 회차당 1회
+세입 담당관이 다음 분기 예산안을 들고 왔다. # title: 세금
+맞추려면 어디선가 더 걷어야 한다. 방법은 여럿이고, 전부 누군가에게서 나온다.
+{ karden_introduced: 카르덴: 올리면 걷힙니다. 그다음은 제 소관이 아닙니다. }
+{ rian_introduced: 리안: 올린 해와 올리지 않은 해는 기록에 다르게 남습니다. }
++ [세율을 올린다]
+    ~ tax_raised = true
+    ~ treasury += 4
+    ~ morale -= 2
+    ~ last_family = "hard"
+    고지서가 새로 나갔다. 첫 달 수납은 예상대로였다.
+    ->->
++ [올리지 않고 지출을 줄인다]
+    ~ treasury += 1
+    ~ labor -= 1
+    ~ last_family = "careful"
+    관청 몇 곳의 예산이 잘렸다. 처리해야 할 일은 그대로 남았다.
+    ->->
++ [교역세만 손본다]
+    ~ treasury += 2
+    ~ southLeverage -= 1
+    ~ coastalFamiliarity -= 1
+    ~ last_family = "careful"
+    드나드는 배에 붙는 값이 조금 올랐다. 상단들이 먼저 알아챘다.
+    ->->
++ [이번 분기는 버틴다]
+    ~ caution += 1
+    ~ last_family = "careful"
+    예산안은 그대로 통과됐다. 모자란 줄은 다음 분기로 넘어갔다.
+    ->->
+
+=== home_leave ===
+~ leave_seen = true
+// [내정] 떠나는 사람들
+// │ 장면: 국경 마을 몇 가구가 조용히 떠났다는 보고. 이유는 적혀 있지 않다.
+// │ 영향: 인력 감소 → 이후 외교 행동의 규모 제한. home_return의 전제.
+// │ 은유: 돌보지 않은 것이 조용히 줄어드는 일. 항의보다 침묵이 먼저다.
+// └ 상태: morale <= 3. 회차당 1회
+변경 마을 몇 가구가 떠났다는 보고가 올라왔다. # title: 떠나는 사람들
+항의는 없었다. 세간을 정리하고, 갈 곳을 적어 두고, 그냥 갔다.
+{ karden_introduced: 카르덴: 세 집입니다. 다음 분기에 몇 집일지는 모릅니다. }
+{ rian_introduced: 리안: 간 곳이 어디인지 적혀 있습니다. 두 집은 남부 항구입니다. }
++ [가는 사람은 막지 않는다]
+    ~ labor -= 1
+    ~ last_family = "careful"
+    아무 지시도 내려가지 않았다. 다음 달 보고에는 두 집이 더 적혀 있었다.
+    ->->
++ [남는 쪽의 부담을 덜어 준다]
+    ~ treasury -= 2
+    ~ morale += 1
+    ~ last_family = "active"
+    변경 쪽 부역이 한 해 면제됐다. 떠난 자리는 그대로지만 남은 사람은 덜 낸다.
+    ->->
++ [이유를 조사한다]
+    ~ labor -= 1
+    ~ uncertainty -= 1
+    ~ spent += 1
+    ~ last_family = "careful"
+    조사관이 다녀왔다. 보고서에는 배급, 부역, 국경 순찰 세 가지가 나란히 적혀 있다.
+    ->->
+
+=== home_arrears ===
+~ arrears_seen = true
+// [내정] 체납
+// │ 장면: 몇몇 마을의 세금이 들어오지 않는다. 항의는 없다. 그냥 안 온다.
+// │ 영향: 올린 뒤에만 온다. 국고 회복이 예상보다 덜 된다.
+// │ 은유: 무리한 뒤에 오는 조용한 신호. 항의보다 침묵이 먼저다.
+// └ 상태: tax_raised && morale <= 5. 회차당 1회
+수납 장부에 빈 줄이 늘었다. # title: 체납
+항의 문서는 한 장도 오지 않았다. 고지서는 갔고, 돈이 오지 않았을 뿐이다.
+{ karden_introduced: 카르덴: 독촉을 보내면 절반은 들어옵니다. 나머지 절반은 더 늦어집니다. }
+{ valen_introduced: 발렌: 법대로 하면 됩니다. }
++ [독촉장을 보낸다]
+    ~ treasury += 1
+    ~ morale -= 1
+    ~ last_family = "hard"
+    독촉이 나갔다. 절반이 들어왔다. 나머지 절반은 여전히 조용하다.
+    ->->
++ [올해분은 면제한다]
+    ~ morale += 1
+    ~ last_family = "careful"
+    면제 공고가 붙었다. 국고는 채워지지 않았고, 빈 줄은 그대로 남았다.
+    ->->
++ [분납을 허용한다]
+    ~ treasury += 1
+    ~ labor -= 1
+    ~ last_family = "careful"
+    분납 신청서가 마을마다 돌았다. 처리에 사람이 붙었다.
+    ->->
+
+=== home_illness ===
+~ illness_seen = true
+// [내정] 앓는 계절
+// │ 장면: 도성에 병이 돈다. 심하지 않지만 일손이 준다.
+// │ 영향: 누구 탓도 아닌 소모. 민심과 무관하게 인력이 얇을 때 온다.
+// │ 은유: 예고 없이 오는 소모.
+// └ 상태: labor <= 4. 회차당 1회
+도성에 열병이 돌았다. 심하지 않다. 며칠 앓고 일어난다. # title: 앓는 계절
+다만 같은 며칠에 여럿이 앓는다. 관청 일이 밀리고, 공사가 선다.
+{ karden_introduced: 카르덴: 이번 주에만 열넷이 나오지 못했습니다. }
++ [의원을 풀고 기다린다]
+    ~ treasury -= 1
+    ~ labor += 1
+    ~ last_family = "careful"
+    보름쯤 지나 잦아들었다. 밀린 일은 그대로 있다.
+    ->->
++ [급한 일만 남기고 관청을 줄인다]
+    ~ morale -= 1
+    ~ last_family = "careful"
+    문을 닫은 관청이 늘었다. 병은 같은 속도로 지나갔다.
+    ->->
++ [평소대로 돌린다]
+    ~ labor -= 1
+    ~ morale -= 1
+    ~ last_family = "hard"
+    일정은 바뀌지 않았다. 앓는 사람이 조금 더 오래 앓았다.
+    ->->
+
+=== home_return ===
+~ return_seen = true
+// [내정] 돌아온 사람들
+// │ 장면: 떠났던 몇 가구가 조용히 돌아왔다는 보고. 이유는 역시 적혀 있지 않다.
+// │ 영향: ★ 하강 일변도를 막는 균형추. 인력 일부 회복.
+// │ 은유: 돌본 것이 티 나지 않게 돌아오는 일.
+// └ 상태: leave_seen && morale >= 6. 회차당 1회
+떠났던 집 가운데 둘이 돌아왔다는 보고가 올라왔다. # title: 돌아온 사람들
+이유는 적혀 있지 않다. 돌아와서 예전 집을 다시 손보고 있다는 것까지만 적혀 있다.
+{ rian_introduced: 리안: 돌아온 이유는 묻지 않는 편이 낫습니다. }
+{ karden_introduced: 카르덴: 두 집이면 여섯 사람입니다. 적지 않습니다. }
++ [조용히 받아들인다]
+    ~ labor += 1
+    ~ last_family = "careful"
+    별도 조치는 없었다. 다음 부역 명부에 이름이 다시 적혔다.
+    ->->
++ [정착을 돕는다]
+    ~ treasury -= 1
+    ~ labor += 1
+    ~ morale += 1
+    ~ last_family = "active"
+    종자와 목재가 나갔다. 봄에는 그 집 밭에서 연기가 올랐다.
+    ->->
+
+=== home_inward ===
+~ inward_seen = true
+// [내정] 안을 보는 철
+// │ 장면: 밖으로 나갈 일이 적은 계절. 미뤄 뒀던 안쪽 일이 눈에 들어온다.
+// │ 영향: ★ 방어적 플레이의 보상 자리. 밖에 덜 쓴 왕만 받는다.
+// │ 은유: 사람을 덜 만난 철에 비로소 자기를 돌보게 되는 일.
+// └ 상태: spent <= 2 && treasury >= 6. 회차당 1회
+바깥으로 나갈 일이 적은 계절이 왔다. # title: 안을 보는 철
+사절도 없고 급한 회신도 없다. 미뤄 뒀던 안쪽 장부가 위로 올라온다.
+{ karden_introduced: 카르덴: 이런 분기는 드뭅니다. 쓸 데를 정하시면 지금이 쌉니다. }
+{ rian_introduced: 리안: 바깥에 쓰지 않은 만큼이 여기 남아 있는 겁니다. }
++ [부역을 한 해 감면한다]
+    ~ treasury -= 2
+    ~ morale += 2
+    ~ last_family = "careful"
+    감면 공고가 마을마다 붙었다. 그해 겨울은 조용했다.
+    ->->
++ [창고를 열어 배급을 늘린다]
+    ~ grain -= 2
+    ~ morale += 2
+    ~ last_family = "careful"
+    배급표가 한 칸씩 올라갔다. 창고 담당자는 봄까지의 숫자를 다시 계산했다.
+    ->->
++ [관청을 늘려 밀린 일을 처리한다]
+    ~ treasury -= 1
+    ~ labor += 1
+    ~ morale += 1
+    ~ spent -= 1
+    ~ last_family = "careful"
+    서기관 자리가 몇 늘었다. 쌓여 있던 묶음이 한 달 만에 절반으로 줄었다.
+    ->->
++ [다음 계절을 위해 남겨 둔다]
+    ~ treasury += 1
+    ~ caution += 1
+    ~ last_family = "careful"
+    아무 데도 쓰지 않았다. 장부에는 여유분이 그대로 적혀 있다.
+    ->->
+
+// ╔════════════════════════════════════════════════════════════════════════╗
+// ║  해안 — 서브 루트. 부담 없는 접촉                                        ║
+// ║  D13 가벼운 친분. 확장하지 않는다 — 메인 루트 사이에서 리듬만 바꾼다.     ║
+// ║  ★ 기계적 역할: 민심을 올리는 유일한 외교다.                             ║
+// ║    나머지 셋은 전부 민심을 깎거나 그대로 둔다.                           ║
+// ║  ★ 여기에는 form도 관문도 없다. 값을 매기지 않는 관계다.                 ║
+// ╚════════════════════════════════════════════════════════════════════════╝
+
+=== coast_02 ===
+-> clamp_state ->
+// [해안] 물자 교환
+// │ 장면: 해안에서 생소한 물건이 들어온다. 값은 싸고 쓸모는 애매하다.
+// │ 영향: coastalFamiliarity, morale. 조건도 관문도 없다.
+// │ 은유: 깊지 않지만 즐거운 관계. 계산하지 않아도 되는 자리.
+// └ 상태: 해안 2번 칸. 부담 없음
+해안 도시에서 배 한 척이 들어왔다. 주문한 적 없는 물건들이다. # act: 3 # title: 물자 교환
+값은 싸다. 쓸모는 애매하다. 말린 과일, 색이 이상한 천, 소리가 나는 나무 상자 같은 것들.
+{ karden_introduced: 카르덴: 예산 항목에 넣을 자리가 없습니다. }
+{ fool_introduced: {name_fool}: 그럼 제 앞으로 달아 두시죠. }
++ [전부 사들인다]
+    ~ treasury -= 1
+    ~ coastalFamiliarity += 1
+    ~ morale += 1
+    ~ last_family = "active"
+    물건은 도성 장에 풀렸다. 색이 이상한 천이 제일 먼저 나갔다.
+    ->->
++ [쓸 만한 것만 고른다]
+    ~ coastalFamiliarity += 1
+    ~ last_family = "careful"
+    절반만 샀다. 해안 상인은 남은 절반을 지고 다음 항구로 갔다.
+    ->->
++ [이번엔 보내고 다음에 보자고 한다]
+    ~ last_family = "careful"
+    배는 그대로 떠났다. 다음 계절에 또 왔다. 이번에도 주문한 적은 없다.
+    ->->
+
+=== coast_04 ===
+-> clamp_state ->
+// [해안] 들른 김에
+// │ 장면: 해안 상인이 다른 볼일로 왔다가 들른다. 용건은 특별히 없다.
+// │ 영향: morale 회복 지점. 왕국이 얇을수록 이 자리가 커진다.
+// │ 은유: 약속하지 않아도 만나지는 사이.
+// └ 상태: 해안 3번 칸. 여기서도 관문은 두지 않는다
+해안 도시 사람들이 다른 볼일로 왔다가 들렀다. # act: 5 # title: 들른 김에
+용건은 특별히 없다. 지난번 축제 이야기를 하고, 도성 시장을 구경하고, 저녁을 먹고 간다.
+{ karden_introduced && morale <= 4: 카르덴: 요즘 도성에 웃는 소리가 드물었습니다. }
+{ fool_introduced: {name_fool}: 용건 없이 오는 손님이 제일 반갑습니다. 뭘 해 드릴 필요가 없거든요. }
++ [하루 묵게 하고 함께 저녁을 든다]
+    ~ treasury -= 1
+    ~ coastalFamiliarity += 1
+    ~ morale += 2
+    ~ last_family = "active"
+    늦게까지 소리가 났다. 다음 날 아침, 일정표는 평소대로였다.
+    ->->
++ [짧게 만나고 보낸다]
+    ~ coastalFamiliarity += 1
+    ~ morale += 1
+    ~ last_family = "careful"
+    차 한 잔이었다. 돌아가는 길에 시장에 들렀다는 이야기가 나중에 들렸다.
+    ->->
++ [일정이 있어 다음에 보자고 한다]
+    ~ last_family = "careful"
+    그날은 회의가 있었다. 해안 쪽에서는 아무 말도 하지 않았다.
+    ->->
 
 // ╔════════════════════════════════════════════════════════════════════════╗
 // ║  서부 루트 — 우리가 아쉬운 쪽                                            ║
@@ -1295,9 +1609,10 @@ KING WAS ME
 // 라우터: 곡물이 밴드를 내려가면 배급 사건이 올라온다(D15)
 { grain <= 5 && not ration_seen:
     -> home_ration
-- else:
-    -> event_13
 }
+-> domestic_check ->
+-> coast_02 ->
+-> event_13
 
 === home_ration ===
 ~ ration_seen = true
@@ -1669,20 +1984,20 @@ KING WAS ME
     ~ spent += 1
     ~ last_family = "active"
     일정이 남부 쪽 달력에 맞춰졌다. 우리 쪽 담당자가 한 명 더 붙었다.
-    -> event_27
+    -> domestic_gate_act5
 + [함께 가되 우리 속도를 적어 보낸다]
     ~ south_form = "slowed"
     ~ spent += 1
     ~ caution += 1
     ~ last_family = "careful"
     회신에 우리 쪽 일정이 함께 적혔다. 남부는 두 줄을 고쳐 다시 보냈다.
-    -> event_27
+    -> domestic_gate_act5
 + [계약 범위만 유지한다]
     ~ south_form = "contract"
     ~ southLeverage += 1
     ~ last_family = "careful"
     기존 조항만 연장됐다. 새 항목은 붙지 않았다.
-    -> event_27
+    -> domestic_gate_act5
 
 // ╔════════════════════════════════════════════════════════════════════════╗
 // ║  북부 루트 — 적대로 열고, 우리가 가야만 천천히 녹는다                   ║
@@ -1972,9 +2287,9 @@ KING WAS ME
 -> clamp_state ->
 { spent >= 3 && not backlog_seen:
     -> home_backlog
-- else:
-    -> event_17
 }
+-> domestic_check ->
+-> event_17
 
 === home_backlog ===
 ~ backlog_seen = true
