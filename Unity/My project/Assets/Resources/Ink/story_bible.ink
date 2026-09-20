@@ -1496,7 +1496,7 @@ KING WAS ME
     ~ initiative += 1
     ~ last_family = "active"
     우리 쪽에서 지점을 둘 더 제안한다. 북부는 하나만 받고 하나는 다음에 보자고 했다.
-    { rian_introduced: 리안: 하나는 받고 하나는 다음에 보자고 했습니다. 그 말 그대로 적어 두겠습니다. }
+    { rian_introduced: 리안: 하나는 받고 하나는 다음에 보자고 했습니다. 저라면 다음을 남겨 둔 걸로 읽겠습니다. }
     -> event_22
 + [시험 기간을 정해 두고 받는다]
     ~ treasury -= 1
